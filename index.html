@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Roblox Studio Web - Mobile GUI Builder</title>
+  <title>Roblox Studio Mobile GUI</title>
   <style>
     :root {
-      --bg-dark: #191919;
-      --bg-panel: #232323;
-      --bg-header: #2d2d2d;
+      --bg-dark: #181818;
+      --bg-panel: #222222;
+      --bg-header: #2c2c2c;
       --bg-input: #121212;
-      --border-color: #333333;
+      --border-color: #383838;
       --studio-blue: #00a2ff;
-      --studio-blue-hover: #0082cc;
-      --text-main: #cccccc;
+      --studio-red: #ff4d4d;
+      --text-main: #dddddd;
       --text-bright: #ffffff;
-      --text-dim: #888888;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      touch-action: manipulation;
       user-select: none;
       -webkit-user-select: none;
     }
@@ -37,7 +37,7 @@
       overflow: hidden;
     }
 
-    /* TOP RIBBON TOOLBAR */
+    /* TOP TOOLBAR */
     header {
       background: var(--bg-header);
       border-bottom: 1px solid var(--border-color);
@@ -45,12 +45,11 @@
       flex-direction: column;
     }
 
-    .title-bar {
-      padding: 4px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-dim);
-      background: #141414;
+    .top-bar {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      background: #111111;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -58,30 +57,30 @@
 
     .ribbon {
       display: flex;
-      padding: 6px;
-      gap: 6px;
+      padding: 8px;
+      gap: 8px;
       overflow-x: auto;
       background: var(--bg-header);
+      -webkit-overflow-scrolling: touch;
     }
 
     .ribbon-btn {
       background: var(--bg-panel);
       color: var(--text-bright);
       border: 1px solid var(--border-color);
-      padding: 6px 12px;
-      border-radius: 3px;
-      font-size: 11px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
       font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      white-space: nowrap;
+      gap: 4px;
     }
 
     .ribbon-btn:active {
       background: var(--studio-blue);
-      border-color: var(--studio-blue);
     }
 
     .export-btn {
@@ -89,35 +88,29 @@
       border-color: #00b300;
     }
 
-    /* MAIN STUDIO WORKSPACE */
-    .studio-workspace {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-    }
-
-    /* VIEWPORT / CANVAS */
-    .viewport {
-      flex: 1;
-      background: #111111;
-      background-image: radial-gradient(#222 1px, transparent 0);
-      background-size: 12px 12px;
+    /* CANVAS VIEWPORT AREA */
+    .viewport-container {
+      background: #0d0d0d;
+      background-image: radial-gradient(#252525 1px, transparent 0);
+      background-size: 16px 16px;
       display: flex;
       justify-content: center;
       align-items: center;
+      padding: 10px;
       position: relative;
-      overflow: hidden;
+      height: 280px;
+      border-bottom: 1px solid var(--border-color);
     }
 
     #screen-gui {
-      width: 320px;
-      height: 220px;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px dashed #444444;
+      width: 100%;
+      max-width: 340px;
+      height: 240px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px dashed #444444;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      border-radius: 6px;
     }
 
     /* INSTANCES ON CANVAS */
@@ -127,7 +120,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: bold;
       touch-action: none;
     }
@@ -137,107 +130,131 @@
       outline-offset: -1px;
     }
 
-    /* SIDEBAR (EXPLORER & PROPERTIES) */
-    .sidebar {
-      width: 170px;
+    /* MOBILE QUICK ACTION BAR (UNDER CANVAS) */
+    .quick-bar {
+      background: #1d1d1d;
+      padding: 8px 12px;
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      overflow-x: auto;
+    }
+
+    .action-btn {
+      flex: 1;
       background: var(--bg-panel);
-      border-left: 1px solid var(--border-color);
+      color: var(--text-bright);
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 6px;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .action-btn.delete {
+      background: #8b0000;
+      border-color: var(--studio-red);
+      color: #ffffff;
+    }
+
+    .action-btn.delete:active {
+      background: var(--studio-red);
+    }
+
+    /* BOTTOM TAB SYSTEM (PROPERTIES & EXPLORER) */
+    .bottom-system {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      height: 100%;
+      background: var(--bg-panel);
+      overflow: hidden;
     }
 
-    .panel-header {
-      background: var(--bg-header);
-      padding: 4px 8px;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-bright);
-      border-bottom: 1px solid var(--border-color);
-      border-top: 1px solid var(--border-color);
+    .tab-headers {
       display: flex;
-      justify-content: space-between;
+      background: #141414;
+      border-bottom: 1px solid var(--border-color);
     }
 
-    /* EXPLORER TREE */
-    .explorer-tree {
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: #888;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab-btn.active {
+      color: var(--studio-blue);
+      border-bottom-color: var(--studio-blue);
+      background: var(--bg-panel);
+    }
+
+    .tab-content {
       flex: 1;
       overflow-y: auto;
-      padding: 4px;
-      font-size: 11px;
+      padding: 12px;
+      display: none;
+      -webkit-overflow-scrolling: touch;
     }
 
-    .tree-item {
-      padding: 4px 6px;
-      border-radius: 2px;
+    .tab-content.active {
+      display: block;
+    }
+
+    /* PROPERTIES FORM (TOUCH FRIENDLY) */
+    .prop-row {
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+
+    .prop-row label {
+      font-size: 12px;
+      color: #aaa;
+      width: 40%;
+    }
+
+    .prop-row input {
+      flex: 1;
+      height: 38px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 0 10px;
+      border-radius: 6px;
+      font-size: 14px; /* Prevents auto-zoom on iOS */
+    }
+
+    .prop-row input[type="color"] {
+      padding: 2px;
       cursor: pointer;
-      color: var(--text-main);
+    }
+
+    /* EXPLORER ITEM LIST */
+    .tree-item {
+      padding: 12px;
+      background: #1a1a1a;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .tree-item.selected {
-      background: var(--studio-blue);
-      color: var(--text-bright);
-    }
-
-    /* PROPERTIES WINDOW */
-    .properties-grid {
-      flex: 1.2;
-      overflow-y: auto;
-      padding: 6px;
-      font-size: 10px;
-      background: var(--bg-panel);
-    }
-
-    .prop-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 3px 0;
-      border-bottom: 1px solid #2a2a2a;
-    }
-
-    .prop-label {
-      color: var(--text-dim);
-      width: 45%;
-    }
-
-    .prop-input {
-      width: 53%;
-      background: var(--bg-input);
-      border: 1px solid var(--border-color);
-      color: var(--text-bright);
-      padding: 3px 5px;
-      font-size: 10px;
-      border-radius: 2px;
-    }
-
-    .prop-input[type="color"] {
-      padding: 0;
-      height: 18px;
-      cursor: pointer;
-    }
-
-    /* QUICK ACTIONS TOOLBAR BELOW VIEWPORT */
-    .quick-actions {
-      position: absolute;
-      bottom: 8px;
-      left: 8px;
-      display: flex;
-      gap: 4px;
-      z-index: 10;
-    }
-
-    .quick-btn {
-      background: rgba(35, 35, 35, 0.9);
-      color: var(--text-bright);
-      border: 1px solid var(--border-color);
-      padding: 4px 8px;
-      font-size: 10px;
-      border-radius: 3px;
-      cursor: pointer;
+      border-color: var(--studio-blue);
+      background: #003355;
     }
 
     /* SCRIPT EXPORT MODAL */
@@ -245,7 +262,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.85);
       z-index: 100;
       padding: 16px;
       flex-direction: column;
@@ -254,10 +271,10 @@
     .modal textarea {
       flex: 1;
       background: var(--bg-input);
-      color: #a6e22e;
+      color: #00ffcc;
       border: 1px solid var(--border-color);
-      border-radius: 4px;
-      padding: 10px;
+      border-radius: 6px;
+      padding: 12px;
       font-family: monospace;
       font-size: 11px;
       white-space: pre;
@@ -267,70 +284,76 @@
       background: var(--studio-blue);
       color: white;
       border: none;
-      padding: 8px;
-      border-radius: 4px;
+      padding: 12px;
+      border-radius: 6px;
       font-weight: bold;
-      margin-top: 8px;
-      cursor: pointer;
+      font-size: 14px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
 
+  <!-- TOP HEADER -->
   <header>
-    <div class="title-bar">
-      <span>Roblox Studio Web - ScreenGui</span>
-      <span id="instance-count">Instances: 0</span>
+    <div class="top-bar">
+      <span>Roblox Studio Mobile</span>
+      <span id="instance-count" style="color: var(--studio-blue)">0 Items</span>
     </div>
     <div class="ribbon">
       <button class="ribbon-btn" onclick="addInstance('Frame')">🟩 + Frame</button>
       <button class="ribbon-btn" onclick="addInstance('TextButton')">🟦 + Button</button>
       <button class="ribbon-btn" onclick="addInstance('TextLabel')">🟨 + Label</button>
       <button class="ribbon-btn" onclick="addInstance('TextBox')">⬜ + TextBox</button>
-      <button class="ribbon-btn export-btn" onclick="exportLua()">📜 Export Script</button>
+      <button class="ribbon-btn export-btn" onclick="exportLua()">📜 Get Lua Code</button>
     </div>
   </header>
 
-  <div class="studio-workspace">
-    
-    <!-- CANVAS / VIEWPORT -->
-    <div class="viewport">
-      <div id="screen-gui"></div>
+  <!-- WORKSPACE CANVAS -->
+  <div class="viewport-container">
+    <div id="screen-gui"></div>
+  </div>
 
-      <!-- Quick Alignment Helper -->
-      <div class="quick-actions">
-        <button class="quick-btn" onclick="quickAlign('center')">Center</button>
-        <button class="quick-btn" onclick="quickAlign('full')">Fill Screen</button>
-        <button class="quick-btn" style="color: #ff5555" onclick="deleteSelected()">Delete</button>
+  <!-- QUICK ACTION TOOLBAR (MOBILE FRIENDLY) -->
+  <div class="quick-bar">
+    <button class="action-btn delete" onclick="deleteSelected()">🗑️ Delete</button>
+    <button class="action-btn" onclick="quickAlign('center')">🎯 Center</button>
+    <button class="action-btn" onclick="duplicateSelected()">📋 Duplicate</button>
+    <button class="action-btn" onclick="quickAlign('full')">📐 Fill</button>
+  </div>
+
+  <!-- BOTTOM TABS (PROPERTIES & EXPLORER) -->
+  <div class="bottom-system">
+    <div class="tab-headers">
+      <button class="tab-btn active" id="btn-properties" onclick="switchTab('properties')">⚙️ Properties</button>
+      <button class="tab-btn" id="btn-explorer" onclick="switchTab('explorer')">📂 Explorer</button>
+    </div>
+
+    <!-- PROPERTIES PANEL -->
+    <div class="tab-content active" id="tab-properties">
+      <div id="properties-form">
+        <p style="color: #666; text-align: center; padding: 20px;">Tap an element on the screen to edit its properties.</p>
       </div>
     </div>
 
-    <!-- SIDEBAR: EXPLORER & PROPERTIES -->
-    <div class="sidebar">
-      
-      <div class="panel-header">EXPLORER</div>
-      <div class="explorer-tree" id="explorer">
-        <div class="tree-item" style="color: #00a2ff">📂 ScreenGui</div>
+    <!-- EXPLORER PANEL -->
+    <div class="tab-content" id="tab-explorer">
+      <div id="explorer-list">
+        <div class="tree-item" style="color: var(--studio-blue)">📂 ScreenGui</div>
       </div>
-
-      <div class="panel-header">PROPERTIES</div>
-      <div class="properties-grid" id="properties">
-        <p style="color: #666; text-align: center; margin-top: 10px;">Select an instance to edit properties.</p>
-      </div>
-
     </div>
   </div>
 
-  <!-- LUA SCRIPT MODAL -->
+  <!-- EXPORT SCRIPT MODAL -->
   <div class="modal" id="codeModal">
     <textarea id="luaOutput" readonly></textarea>
-    <button class="modal-close" onclick="closeModal()">Copy to Clipboard & Close</button>
+    <button class="modal-close" onclick="closeModal()">Copy Script & Close</button>
   </div>
 
   <script>
     const screenGui = document.getElementById('screen-gui');
-    const explorer = document.getElementById('explorer');
-    const properties = document.getElementById('properties');
+    const explorerList = document.getElementById('explorer-list');
+    const propertiesForm = document.getElementById('properties-form');
     const instanceCount = document.getElementById('instance-count');
 
     let instances = [];
@@ -347,12 +370,12 @@
         name: type + counter,
         x: 20,
         y: 20,
-        width: type === 'Frame' ? 120 : 90,
-        height: type === 'Frame' ? 80 : 26,
+        width: type === 'Frame' ? 140 : 100,
+        height: type === 'Frame' ? 90 : 32,
         bgColor: type === 'Frame' ? '#252525' : '#333333',
         textColor: '#ffffff',
         text: type === 'Frame' ? '' : type,
-        cornerRadius: 4
+        cornerRadius: 6
       };
 
       instances.push(newInst);
@@ -369,7 +392,7 @@
         dom.className = 'studio-instance';
         screenGui.appendChild(dom);
 
-        // Touch & Drag Handling for Mobile
+        // Smooth Touch Dragging for Mobile
         let isDragging = false;
         let startX, startY;
 
@@ -383,6 +406,7 @@
 
         const doMove = (e) => {
           if (!isDragging) return;
+          if (e.touches) e.preventDefault(); // Prevents page from scrolling while dragging
           const touch = e.touches ? e.touches[0] : e;
           data.x = Math.max(0, Math.min(screenGui.clientWidth - data.width, touch.clientX - startX));
           data.y = Math.max(0, Math.min(screenGui.clientHeight - data.height, touch.clientY - startY));
@@ -392,8 +416,8 @@
 
         const endMove = () => { isDragging = false; };
 
-        dom.addEventListener('touchstart', startMove);
-        dom.addEventListener('touchmove', doMove);
+        dom.addEventListener('touchstart', startMove, {passive: false});
+        dom.addEventListener('touchmove', doMove, {passive: false});
         dom.addEventListener('touchend', endMove);
         dom.addEventListener('mousedown', startMove);
         window.addEventListener('mousemove', doMove);
@@ -425,36 +449,46 @@
       updateProperties();
     }
 
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      document.getElementById('btn-' + tabName).classList.add('active');
+      document.getElementById('tab-' + tabName).classList.add('active');
+    }
+
     function updateExplorer() {
-      instanceCount.innerText = `Instances: ${instances.length}`;
-      explorer.innerHTML = `<div class="tree-item" style="color: #00a2ff">📂 ScreenGui</div>`;
+      instanceCount.innerText = `${instances.length} Items`;
+      explorerList.innerHTML = `<div class="tree-item" style="color: var(--studio-blue)">📂 ScreenGui</div>`;
       
       instances.forEach(inst => {
         const item = document.createElement('div');
         item.className = `tree-item ${inst.id === selectedId ? 'selected' : ''}`;
-        item.style.paddingLeft = '18px';
-        item.innerText = `📄 ${inst.name}`;
-        item.onclick = () => selectInstance(inst.id);
-        explorer.appendChild(item);
+        item.innerHTML = `<span>📄 ${inst.name}</span><small style="color:#777">${inst.type}</small>`;
+        item.onclick = () => {
+          selectInstance(inst.id);
+          switchTab('properties');
+        };
+        explorerList.appendChild(item);
       });
     }
 
     function updateProperties() {
       const data = instances.find(e => e.id === selectedId);
       if (!data) {
-        properties.innerHTML = `<p style="color: #666; text-align: center; margin-top: 10px;">Select an instance to edit.</p>`;
+        propertiesForm.innerHTML = `<p style="color: #666; text-align: center; padding: 20px;">Tap an element on the screen to edit its properties.</p>`;
         return;
       }
 
-      properties.innerHTML = `
-        <div class="prop-row"><span class="prop-label">Name</span><input class="prop-input" type="text" value="${data.name}" onchange="setProp('name', this.value)"></div>
-        <div class="prop-row"><span class="prop-label">Text</span><input class="prop-input" type="text" value="${data.text}" onchange="setProp('text', this.value)"></div>
-        <div class="prop-row"><span class="prop-label">Width</span><input class="prop-input" type="number" value="${data.width}" onchange="setProp('width', parseInt(this.value))"></div>
-        <div class="prop-row"><span class="prop-label">Height</span><input class="prop-input" type="number" value="${data.height}" onchange="setProp('height', parseInt(this.value))"></div>
-        <div class="prop-row"><span class="prop-label">Position X</span><input class="prop-input" type="number" value="${data.x}" onchange="setProp('x', parseInt(this.value))"></div>
-        <div class="prop-row"><span class="prop-label">Position Y</span><input class="prop-input" type="number" value="${data.y}" onchange="setProp('y', parseInt(this.value))"></div>
-        <div class="prop-row"><span class="prop-label">BG Color</span><input class="prop-input" type="color" value="${data.bgColor}" onchange="setProp('bgColor', this.value)"></div>
-        <div class="prop-row"><span class="prop-label">Corner Radius</span><input class="prop-input" type="number" value="${data.cornerRadius}" onchange="setProp('cornerRadius', parseInt(this.value))"></div>
+      propertiesForm.innerHTML = `
+        <div class="prop-row"><label>Name</label><input type="text" value="${data.name}" onchange="setProp('name', this.value)"></div>
+        <div class="prop-row"><label>Text</label><input type="text" value="${data.text}" onchange="setProp('text', this.value)"></div>
+        <div class="prop-row"><label>Width (px)</label><input type="number" value="${data.width}" onchange="setProp('width', parseInt(this.value))"></div>
+        <div class="prop-row"><label>Height (px)</label><input type="number" value="${data.height}" onchange="setProp('height', parseInt(this.value))"></div>
+        <div class="prop-row"><label>Pos X</label><input type="number" value="${data.x}" onchange="setProp('x', parseInt(this.value))"></div>
+        <div class="prop-row"><label>Pos Y</label><input type="number" value="${data.y}" onchange="setProp('y', parseInt(this.value))"></div>
+        <div class="prop-row"><label>Background</label><input type="color" value="${data.bgColor}" onchange="setProp('bgColor', this.value)"></div>
+        <div class="prop-row"><label>Corner Radius</label><input type="number" value="${data.cornerRadius}" onchange="setProp('cornerRadius', parseInt(this.value))"></div>
       `;
     }
 
@@ -484,7 +518,25 @@
       updateProperties();
     }
 
+    function duplicateSelected() {
+      const data = instances.find(e => e.id === selectedId);
+      if (!data) return;
+
+      counter++;
+      const newInst = JSON.parse(JSON.stringify(data));
+      newInst.id = 'inst_' + counter;
+      newInst.name = data.type + counter;
+      newInst.x = Math.min(screenGui.clientWidth - data.width, data.x + 15);
+      newInst.y = Math.min(screenGui.clientHeight - data.height, data.y + 15);
+
+      instances.push(newInst);
+      renderInstance(newInst);
+      updateExplorer();
+      selectInstance(newInst.id);
+    }
+
     function deleteSelected() {
+      if (!selectedId) return;
       instances = instances.filter(e => e.id !== selectedId);
       const dom = document.getElementById(selectedId);
       if (dom) dom.remove();
@@ -499,10 +551,10 @@
     }
 
     function exportLua() {
-      let code = `-- Generated by Roblox Studio Web Builder\n`;
+      let code = `-- Roblox Mobile GUI Builder Script\n`;
       code += `local CoreGui = game:GetService("CoreGui")\n\n`;
       code += `local ScreenGui = Instance.new("ScreenGui")\n`;
-      code += `ScreenGui.Name = "StudioWebGui"\n`;
+      code += `ScreenGui.Name = "MobileStudioGui"\n`;
       code += `ScreenGui.Parent = CoreGui\n\n`;
 
       instances.forEach(el => {
@@ -519,7 +571,7 @@
           code += `${el.name}.Text = "${el.text}"\n`;
           code += `${el.name}.TextColor3 = Color3.fromRGB(255, 255, 255)\n`;
           code += `${el.name}.Font = Enum.Font.GothamBold\n`;
-          code += `${el.name}.TextSize = 11\n`;
+          code += `${el.name}.TextSize = 12\n`;
         }
 
         if (el.cornerRadius > 0) {
