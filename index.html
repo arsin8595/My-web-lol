@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Roblox Studio Web - Pro Builder v3</title>
+  <title>Roblox Studio Web - Pro Builder v3.1</title>
   <style>
     :root {
       --bg-dark: #181818;
@@ -135,6 +135,17 @@
       outline-offset: -1px;
     }
 
+    /* TEXT LAYER INSIDE INSTANCE */
+    .instance-text {
+      pointer-events: none;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
     /* HAND RESIZE HANDLE */
     .resize-handle {
       position: absolute;
@@ -151,7 +162,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.5);
     }
 
-    .studio-instance.selected .resize-handle {
+    .studio-instance.selected > .resize-handle {
       display: block;
     }
 
@@ -399,7 +410,7 @@
   <!-- TOP HEADER -->
   <header>
     <div class="top-bar">
-      <span>Roblox Studio Web v3.0</span>
+      <span>Roblox Studio Web v3.1</span>
       <span id="instance-count" style="color: var(--studio-blue)">0 Items</span>
     </div>
     <div class="ribbon">
@@ -448,7 +459,7 @@
     </div>
   </div>
 
-  <!-- DEDICATED SCRIPT EDITOR TAB / OVERLAY -->
+  <!-- DEDICATED SCRIPT EDITOR OVERLAY -->
   <div class="script-modal" id="scriptTab">
     <div class="script-modal-header">
       <span class="script-modal-title" id="scriptEditorTitle">📜 Scripting: Unset</span>
@@ -525,11 +536,17 @@
         dom.id = data.id;
         dom.className = 'studio-instance';
 
+        // Isolated Text Span Layer
+        const textSpan = document.createElement('span');
+        textSpan.className = 'instance-text';
+        dom.appendChild(textSpan);
+
+        // Resize Handle
         const resizeHandle = document.createElement('div');
         resizeHandle.className = 'resize-handle';
         dom.appendChild(resizeHandle);
 
-        // Touch & Move Handling (Fixed Nested Parenting Offset Bug)
+        // Touch & Move Handling
         let isDragging = false;
         let startX, startY, initialX, initialY;
 
@@ -618,6 +635,7 @@
 
     function updateDom(data) {
       const dom = document.getElementById(data.id);
+      if (!dom) return;
       
       const targetParent = (data.parentId !== 'ScreenGui' && document.getElementById(data.parentId)) 
         ? document.getElementById(data.parentId) 
@@ -634,17 +652,18 @@
       dom.style.backgroundColor = data.bgColor;
       dom.style.opacity = data.visible ? (1 - data.bgTransparency) : 0;
       dom.style.borderRadius = data.hasCorner ? data.cornerRadius + 'px' : '0px';
-      dom.style.color = data.textColor;
-      dom.style.fontSize = data.textScaled ? '16px' : data.textSize + 'px';
       dom.style.transform = `rotate(${data.rotation}deg)`;
       dom.style.zIndex = data.zIndex;
-      dom.style.whiteSpace = data.textWrapped ? 'normal' : 'nowrap';
-      dom.style.justifyContent = data.textAlign === 'Left' ? 'flex-start' : (data.textAlign === 'Right' ? 'flex-end' : 'center');
-      dom.style.padding = data.textAlign !== 'Center' ? '0 8px' : '0';
       
-      const handleDom = dom.querySelector('.resize-handle');
-      dom.innerText = data.text;
-      if (handleDom) dom.appendChild(handleDom);
+      const textSpan = dom.querySelector('.instance-text');
+      if (textSpan) {
+        textSpan.innerText = (data.type === 'Frame' || data.type === 'ImageLabel') ? '' : data.text;
+        textSpan.style.color = data.textColor;
+        textSpan.style.fontSize = data.textScaled ? '16px' : data.textSize + 'px';
+        textSpan.style.whiteSpace = data.textWrapped ? 'normal' : 'nowrap';
+        textSpan.style.justifyContent = data.textAlign === 'Left' ? 'flex-start' : (data.textAlign === 'Right' ? 'flex-end' : 'center');
+        textSpan.style.padding = data.textAlign !== 'Center' ? '0 8px' : '0';
+      }
 
       if (data.hasBorder) {
         dom.style.border = `${data.borderThickness}px solid ${data.borderColor}`;
@@ -684,7 +703,6 @@
       document.getElementById('tab-' + tabName).classList.add('active');
     }
 
-    /* FULL-SCREEN DEDICATED SCRIPT TAB FUNCTIONS */
     function openScriptTab() {
       const data = instances.find(e => e.id === selectedId);
       if (!data) return;
@@ -850,7 +868,7 @@
     }
 
     function exportLua() {
-      let code = `-- Roblox Mobile GUI Builder Script v3.0\n`;
+      let code = `-- Roblox Mobile GUI Builder Script v3.1\n`;
       code += `local CoreGui = game:GetService("CoreGui")\n`;
       code += `local UserInputService = game:GetService("UserInputService")\n\n`;
       code += `local ScreenGui = Instance.new("ScreenGui")\n`;
