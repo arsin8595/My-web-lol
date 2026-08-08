@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Roblox Studio Web - Pro Builder v3.2</title>
+  <title>Roblox Studio Web - Pro Builder v3.3</title>
   <style>
     :root {
       --bg-dark: #181818;
@@ -131,9 +131,11 @@
       cursor: pointer;
     }
 
+    /* HIGH VISIBILITY SELECTION BORDER FOR FRAMES & ALL ELEMENTS */
     .studio-instance.selected {
       outline: 2px solid var(--studio-blue) !important;
       outline-offset: -1px;
+      box-shadow: 0 0 8px rgba(0, 162, 255, 0.5);
     }
 
     /* TEXT SPAN LAYER */
@@ -411,7 +413,7 @@
   <!-- TOP HEADER -->
   <header>
     <div class="top-bar">
-      <span>Roblox Studio Web v3.2</span>
+      <span>Roblox Studio Web v3.3</span>
       <span id="instance-count" style="color: var(--studio-blue)">0 Items</span>
     </div>
     <div class="ribbon">
@@ -489,7 +491,6 @@
     let selectedId = null;
     let counter = 0;
 
-    // Deselect only when tapping background canvas directly
     canvasBg.addEventListener('pointerdown', (e) => {
       if (e.target === canvasBg || e.target === screenGui) {
         deselectAll();
@@ -515,9 +516,9 @@
         parentId: 'ScreenGui',
         x: 20,
         y: 20,
-        width: type === 'Frame' ? 150 : 100,
-        height: type === 'Frame' ? 100 : 32,
-        bgColor: type === 'Frame' ? '#1f1f28' : '#2d2d3a',
+        width: type === 'Frame' ? 160 : 100,
+        height: type === 'Frame' ? 110 : 32,
+        bgColor: type === 'Frame' ? '#252533' : '#2d2d3a',
         hoverColor: '#3b3b4d',
         bgTransparency: 0,
         textColor: '#ffffff',
@@ -532,9 +533,9 @@
         visible: true,
         hasCorner: true,
         cornerRadius: 6,
-        hasBorder: false,
+        hasBorder: type === 'Frame',
         borderColor: '#00a2ff',
-        borderThickness: 2,
+        borderThickness: 1,
         imageId: '',
         draggable: type === 'Frame',
         customScript: type.includes('Button') ? 'print("Clicked!")' : ''
@@ -553,7 +554,7 @@
         dom.id = data.id;
         dom.className = 'studio-instance';
 
-        // Isolated Text Layer
+        // Text Span Layer
         const textSpan = document.createElement('span');
         textSpan.className = 'instance-text';
         dom.appendChild(textSpan);
@@ -881,7 +882,7 @@
     }
 
     function exportLua() {
-      let code = `-- Roblox Mobile GUI Builder Script v3.2\n`;
+      let code = `-- Roblox Mobile GUI Builder Script v3.3\n`;
       code += `local CoreGui = game:GetService("CoreGui")\n`;
       code += `local UserInputService = game:GetService("UserInputService")\n\n`;
       code += `local ScreenGui = Instance.new("ScreenGui")\n`;
