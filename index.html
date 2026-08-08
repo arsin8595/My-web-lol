@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Roblox Mobile GUI Studio</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: #111118;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background: #181824;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2a2a3c;
+    }
+
+    header h1 {
+      font-size: 14px;
+      color: #b48ead;
+    }
+
+    .export-btn {
+      background: #a3be8c;
+      color: #111;
+      border: none;
+      padding: 6px 12px;
+      font-weight: bold;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* Main Workbench */
+    .workbench {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Toolbar for adding elements */
+    .toolbar {
+      background: #1e1e2e;
+      padding: 8px;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      border-bottom: 1px solid #2a2a3c;
+    }
+
+    .tool-btn {
+      background: #2b2b3d;
+      color: #d8dee9;
+      border: 1px solid #3b3b54;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    /* Canvas / Screen Area */
+    .canvas-container {
+      flex: 1;
+      background: #09090d;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #canvas {
+      width: 320px;
+      height: 240px;
+      background: #14141e;
+      border: 2px dashed #3b3b54;
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    /* Custom Draggable UI Elements */
+    .gui-element {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      font-size: 11px;
+      font-weight: bold;
+      box-sizing: border-box;
+      border: 1px solid transparent;
+    }
+
+    .gui-element.selected {
+      border: 1.5px solid #88c0d0 !important;
+    }
+
+    /* Property Inspector Panel */
+    .inspector {
+      background: #181824;
+      height: 180px;
+      padding: 10px;
+      border-top: 1px solid #2a2a3c;
+      overflow-y: auto;
+      font-size: 11px;
+    }
+
+    .inspector h3 {
+      font-size: 11px;
+      color: #88c0d0;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .prop-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .prop-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .prop-group label {
+      color: #81a1c1;
+      font-size: 10px;
+    }
+
+    .prop-group input {
+      background: #2b2b3d;
+      border: 1px solid #3b3b54;
+      color: #fff;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .delete-btn {
+      background: #bf616a;
+      color: #fff;
+      border: none;
+      padding: 6px;
+      border-radius: 4px;
+      margin-top: 8px;
+      width: 100%;
+      font-weight: bold;
+    }
+
+    /* Code Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 99;
+      padding: 20px;
+      flex-direction: column;
+    }
+
+    .modal textarea {
+      width: 100%;
+      flex: 1;
+      background: #111118;
+      color: #a3be8c;
+      border: 1px solid #3b3b54;
+      border-radius: 6px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 10px;
+      white-space: pre;
+    }
+
+    .modal-close {
+      background: #ebcb8b;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Roblox GUI Builder</h1>
+    <button class="export-btn" onclick="exportLua()">Export Lua Code</button>
+  </header>
+
+  <div class="workbench">
+    <div class="toolbar">
+      <button class="tool-btn" onclick="addElement('Frame')">+ Frame</button>
+      <button class="tool-btn" onclick="addElement('TextButton')">+ Button</button>
+      <button class="tool-btn" onclick="addElement('TextLabel')">+ Label</button>
+      <button class="tool-btn" onclick="addElement('TextBox')">+ TextBox</button>
+    </div>
+
+    <div class="canvas-container">
+      <div id="canvas"></div>
+    </div>
+
+    <div class="inspector" id="inspector">
+      <h3>Properties</h3>
+      <p style="color: #666">Tap an element on the screen to edit it.</p>
+    </div>
+  </div>
+
+  <div class="modal" id="codeModal">
+    <textarea id="luaOutput" readonly></textarea>
+    <button class="modal-close" onclick="closeModal()">Close & Copy</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const inspector = document.getElementById('inspector');
+    let elements = [];
+    let selectedId = null;
+    let elementCounter = 0;
+
+    function addElement(type) {
+      elementCounter++;
+      const id = 'el_' + elementCounter;
+      
+      const elData = {
+        id: id,
+        type: type,
+        name: type + "_" + elementCounter,
+        x: 20,
+        y: 20,
+        width: type === 'Frame' ? 140 : 100,
+        height: type === 'Frame' ? 100 : 30,
+        bgColor: type === 'Frame' ? '#1e1e2e' : '#2e3440',
+        textColor: '#ffffff',
+        text: type === 'Frame' ? '' : (type === 'TextButton' ? 'Button' : 'Label'),
+        cornerRadius: 6
+      };
+
+      elements.push(elData);
+      renderElement(elData);
+      selectElement(id);
+    }
+
+    function renderElement(data) {
+      let dom = document.getElementById(data.id);
+      if (!dom) {
+        dom = document.createElement('div');
+        dom.id = data.id;
+        dom.className = 'gui-element';
+        canvas.appendChild(dom);
+
+        // Touch & Drag Support for Mobile
+        let isDragging = false;
+        let startX, startY;
+
+        const startMove = (e) => {
+          isDragging = true;
+          const touch = e.touches ? e.touches[0] : e;
+          startX = touch.clientX - data.x;
+          startY = touch.clientY - data.y;
+          selectElement(data.id);
+        };
+
+        const doMove = (e) => {
+          if (!isDragging) return;
+          const touch = e.touches ? e.touches[0] : e;
+          data.x = Math.max(0, Math.min(canvas.clientWidth - data.width, touch.clientX - startX));
+          data.y = Math.max(0, Math.min(canvas.clientHeight - data.height, touch.clientY - startY));
+          updateDom(data);
+          updateInspector();
+        };
+
+        const endMove = () => { isDragging = false; };
+
+        dom.addEventListener('touchstart', startMove);
+        dom.addEventListener('touchmove', doMove);
+        dom.addEventListener('touchend', endMove);
+        dom.addEventListener('mousedown', startMove);
+        window.addEventListener('mousemove', doMove);
+        window.addEventListener('mouseup', endMove);
+      }
+
+      updateDom(data);
+    }
+
+    function updateDom(data) {
+      const dom = document.getElementById(data.id);
+      dom.style.left = data.x + 'px';
+      dom.style.top = data.y + 'px';
+      dom.style.width = data.width + 'px';
+      dom.style.height = data.height + 'px';
+      dom.style.backgroundColor = data.bgColor;
+      dom.style.color = data.textColor;
+      dom.style.borderRadius = data.cornerRadius + 'px';
+      dom.innerText = data.text;
+    }
+
+    function selectElement(id) {
+      selectedId = id;
+      document.querySelectorAll('.gui-element').forEach(el => el.classList.remove('selected'));
+      const activeDom = document.getElementById(id);
+      if (activeDom) activeDom.classList.add('selected');
+      updateInspector();
+    }
+
+    function updateInspector() {
+      const data = elements.find(e => e.id === selectedId);
+      if (!data) {
+        inspector.innerHTML = `<h3>Properties</h3><p style="color: #666">Tap an element to edit.</p>`;
+        return;
+      }
+
+      inspector.innerHTML = `
+        <h3>Editing: ${data.name}</h3>
+        <div class="prop-grid">
+          <div class="prop-group">
+            <label>Name</label>
+            <input type="text" value="${data.name}" onchange="updateProp('name', this.value)">
+          </div>
+          <div class="prop-group">
+            <label>Text</label>
+            <input type="text" value="${data.text}" onchange="updateProp('text', this.value)">
+          </div>
+          <div class="prop-group">
+            <label>Width</label>
+            <input type="number" value="${data.width}" onchange="updateProp('width', parseInt(this.value))">
+          </div>
+          <div class="prop-group">
+            <label>Height</label>
+            <input type="number" value="${data.height}" onchange="updateProp('height', parseInt(this.value))">
+          </div>
+          <div class="prop-group">
+            <label>BG Color</label>
+            <input type="color" value="${data.bgColor}" onchange="updateProp('bgColor', this.value)">
+          </div>
+          <div class="prop-group">
+            <label>Corner Radius</label>
+            <input type="number" value="${data.cornerRadius}" onchange="updateProp('cornerRadius', parseInt(this.value))">
+          </div>
+        </div>
+        <button class="delete-btn" onclick="deleteSelected()">Delete Element</button>
+      `;
+    }
+
+    function updateProp(prop, val) {
+      const data = elements.find(e => e.id === selectedId);
+      if (data) {
+        data[prop] = val;
+        renderElement(data);
+      }
+    }
+
+    function deleteSelected() {
+      elements = elements.filter(e => e.id !== selectedId);
+      const dom = document.getElementById(selectedId);
+      if (dom) dom.remove();
+      selectedId = null;
+      updateInspector();
+    }
+
+    function hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '255, 255, 255';
+    }
+
+    function exportLua() {
+      let code = `-- Generated by Roblox Mobile GUI Builder\n`;
+      code += `local CoreGui = game:GetService("CoreGui")\n\n`;
+      code += `local ScreenGui = Instance.new("ScreenGui")\n`;
+      code += `ScreenGui.Name = "CustomMobileGui"\n`;
+      code += `ScreenGui.Parent = CoreGui\n\n`;
+
+      elements.forEach(el => {
+        code += `-- ${el.name}\n`;
+        code += `local ${el.name} = Instance.new("${el.type}")\n`;
+        code += `${el.name}.Name = "${el.name}"\n`;
+        code += `${el.name}.Parent = ScreenGui\n`;
+        code += `${el.name}.Position = UDim2.new(0, ${el.x}, 0, ${el.y})\n`;
+        code += `${el.name}.Size = UDim2.new(0, ${el.width}, 0, ${el.height})\n`;
+        code += `${el.name}.BackgroundColor3 = Color3.fromRGB(${hexToRgb(el.bgColor)})\n`;
+        code += `${el.name}.BorderSizePixel = 0\n`;
+
+        if (el.type !== 'Frame') {
+          code += `${el.name}.Text = "${el.text}"\n`;
+          code += `${el.name}.TextColor3 = Color3.fromRGB(255, 255, 255)\n`;
+          code += `${el.name}.Font = Enum.Font.GothamBold\n`;
+          code += `${el.name}.TextSize = 12\n`;
+        }
+
+        if (el.cornerRadius > 0) {
+          code += `local ${el.name}_Corner = Instance.new("UICorner")\n`;
+          code += `${el.name}_Corner.CornerRadius = UDim.new(0, ${el.cornerRadius})\n`;
+          code += `${el.name}_Corner.Parent = ${el.name}\n`;
+        }
+        code += `\n`;
+      });
+
+      document.getElementById('luaOutput').value = code;
+      document.getElementById('codeModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      const copyText = document.getElementById("luaOutput");
+      copyText.select();
+      navigator.clipboard.writeText(copyText.value);
+      document.getElementById('codeModal').style.display = 'none';
+      alert("Script copied to clipboard!");
+    }
+  </script>
+</body>
+</html>
