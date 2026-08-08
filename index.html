@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Roblox Studio Mobile GUI</title>
+  <title>Roblox Studio Mobile Studio</title>
   <style>
     :root {
       --bg-dark: #181818;
@@ -13,6 +13,7 @@
       --border-color: #383838;
       --studio-blue: #00a2ff;
       --studio-red: #ff4d4d;
+      --studio-green: #00b34a;
       --text-main: #dddddd;
       --text-bright: #ffffff;
     }
@@ -37,7 +38,7 @@
       overflow: hidden;
     }
 
-    /* TOP TOOLBAR */
+    /* TOP HEADER */
     header {
       background: var(--bg-header);
       border-bottom: 1px solid var(--border-color);
@@ -84,11 +85,11 @@
     }
 
     .export-btn {
-      background: #008a00;
-      border-color: #00b300;
+      background: var(--studio-green);
+      border-color: #00e65c;
     }
 
-    /* CANVAS VIEWPORT AREA */
+    /* MOBILE LANDSCAPE SCREEN RESOLUTION CANVAS */
     .viewport-container {
       background: #0d0d0d;
       background-image: radial-gradient(#252525 1px, transparent 0);
@@ -96,21 +97,24 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 10px;
+      padding: 12px;
       position: relative;
-      height: 280px;
+      flex: 1.1;
       border-bottom: 1px solid var(--border-color);
+      overflow: hidden;
     }
 
+    /* 16:9 Mobile Roblox Screen Aspect Ratio */
     #screen-gui {
       width: 100%;
-      max-width: 340px;
-      height: 240px;
+      max-width: 440px;
+      aspect-ratio: 16 / 9;
       background: rgba(255, 255, 255, 0.03);
-      border: 2px dashed #444444;
+      border: 2px dashed #555555;
       position: relative;
       overflow: hidden;
-      border-radius: 6px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
     }
 
     /* INSTANCES ON CANVAS */
@@ -123,6 +127,9 @@
       font-size: 12px;
       font-weight: bold;
       touch-action: none;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
     }
 
     .studio-instance.selected {
@@ -130,7 +137,7 @@
       outline-offset: -1px;
     }
 
-    /* MOBILE QUICK ACTION BAR (UNDER CANVAS) */
+    /* MOBILE QUICK ACTION BAR */
     .quick-bar {
       background: #1d1d1d;
       padding: 8px 12px;
@@ -159,11 +166,7 @@
       color: #ffffff;
     }
 
-    .action-btn.delete:active {
-      background: var(--studio-red);
-    }
-
-    /* BOTTOM TAB SYSTEM (PROPERTIES & EXPLORER) */
+    /* BOTTOM TAB SYSTEM */
     .bottom-system {
       flex: 1;
       display: flex;
@@ -208,7 +211,7 @@
       display: block;
     }
 
-    /* PROPERTIES FORM (TOUCH FRIENDLY) */
+    /* PROPERTIES FORM */
     .prop-row {
       display: flex;
       align-items: center;
@@ -223,20 +226,35 @@
       width: 40%;
     }
 
-    .prop-row input {
+    .prop-row input, .prop-row textarea {
       flex: 1;
-      height: 38px;
       background: var(--bg-input);
       border: 1px solid var(--border-color);
       color: #fff;
-      padding: 0 10px;
+      padding: 8px 10px;
       border-radius: 6px;
-      font-size: 14px; /* Prevents auto-zoom on iOS */
+      font-size: 13px;
     }
 
-    .prop-row input[type="color"] {
-      padding: 2px;
+    .prop-row textarea {
+      height: 60px;
+      font-family: monospace;
+      font-size: 11px;
+      resize: vertical;
+    }
+
+    .file-upload-btn {
+      width: 100%;
+      background: #2a3b4c;
+      color: var(--studio-blue);
+      border: 1px dashed var(--studio-blue);
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 12px;
       cursor: pointer;
+      text-align: center;
+      margin-bottom: 10px;
     }
 
     /* EXPLORER ITEM LIST */
@@ -294,32 +312,36 @@
 </head>
 <body>
 
+  <!-- Hidden File Input for Device Gallery -->
+  <input type="file" id="image-file-input" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+
   <!-- TOP HEADER -->
   <header>
     <div class="top-bar">
-      <span>Roblox Studio Mobile</span>
+      <span>Roblox Studio Mobile (16:9 View)</span>
       <span id="instance-count" style="color: var(--studio-blue)">0 Items</span>
     </div>
     <div class="ribbon">
       <button class="ribbon-btn" onclick="addInstance('Frame')">🟩 + Frame</button>
       <button class="ribbon-btn" onclick="addInstance('TextButton')">🟦 + Button</button>
+      <button class="ribbon-btn" onclick="addInstance('ImageLabel')">🖼️ + Image</button>
       <button class="ribbon-btn" onclick="addInstance('TextLabel')">🟨 + Label</button>
       <button class="ribbon-btn" onclick="addInstance('TextBox')">⬜ + TextBox</button>
-      <button class="ribbon-btn export-btn" onclick="exportLua()">📜 Get Lua Code</button>
+      <button class="ribbon-btn export-btn" onclick="exportLua()">📜 Export Script</button>
     </div>
   </header>
 
-  <!-- WORKSPACE CANVAS -->
+  <!-- MOBILE LANDSCAPE VIEWPORT CANVAS -->
   <div class="viewport-container">
     <div id="screen-gui"></div>
   </div>
 
-  <!-- QUICK ACTION TOOLBAR (MOBILE FRIENDLY) -->
+  <!-- QUICK ACTION TOOLBAR -->
   <div class="quick-bar">
     <button class="action-btn delete" onclick="deleteSelected()">🗑️ Delete</button>
     <button class="action-btn" onclick="quickAlign('center')">🎯 Center</button>
     <button class="action-btn" onclick="duplicateSelected()">📋 Duplicate</button>
-    <button class="action-btn" onclick="quickAlign('full')">📐 Fill</button>
+    <button class="action-btn" onclick="quickAlign('full')">📐 Fill Screen</button>
   </div>
 
   <!-- BOTTOM TABS (PROPERTIES & EXPLORER) -->
@@ -332,7 +354,7 @@
     <!-- PROPERTIES PANEL -->
     <div class="tab-content active" id="tab-properties">
       <div id="properties-form">
-        <p style="color: #666; text-align: center; padding: 20px;">Tap an element on the screen to edit its properties.</p>
+        <p style="color: #666; text-align: center; padding: 20px;">Tap an element on the screen to edit properties.</p>
       </div>
     </div>
 
@@ -355,6 +377,7 @@
     const explorerList = document.getElementById('explorer-list');
     const propertiesForm = document.getElementById('properties-form');
     const instanceCount = document.getElementById('instance-count');
+    const imageFileInput = document.getElementById('image-file-input');
 
     let instances = [];
     let selectedId = null;
@@ -374,8 +397,10 @@
         height: type === 'Frame' ? 90 : 32,
         bgColor: type === 'Frame' ? '#252525' : '#333333',
         textColor: '#ffffff',
-        text: type === 'Frame' ? '' : type,
-        cornerRadius: 6
+        text: (type === 'Frame' || type === 'ImageLabel') ? '' : type,
+        cornerRadius: 6,
+        imageSrc: '',
+        customScript: type.includes('Button') ? 'print("Button clicked!")' : ''
       };
 
       instances.push(newInst);
@@ -392,7 +417,7 @@
         dom.className = 'studio-instance';
         screenGui.appendChild(dom);
 
-        // Smooth Touch Dragging for Mobile
+        // Smooth Touch Dragging
         let isDragging = false;
         let startX, startY;
 
@@ -406,7 +431,7 @@
 
         const doMove = (e) => {
           if (!isDragging) return;
-          if (e.touches) e.preventDefault(); // Prevents page from scrolling while dragging
+          if (e.touches) e.preventDefault();
           const touch = e.touches ? e.touches[0] : e;
           data.x = Math.max(0, Math.min(screenGui.clientWidth - data.width, touch.clientX - startX));
           data.y = Math.max(0, Math.min(screenGui.clientHeight - data.height, touch.clientY - startY));
@@ -437,6 +462,12 @@
       dom.style.color = data.textColor;
       dom.style.borderRadius = data.cornerRadius + 'px';
       dom.innerText = data.text;
+
+      if (data.imageSrc) {
+        dom.style.backgroundImage = `url("${data.imageSrc}")`;
+      } else {
+        dom.style.backgroundImage = 'none';
+      }
     }
 
     function selectInstance(id) {
@@ -455,6 +486,26 @@
 
       document.getElementById('btn-' + tabName).classList.add('active');
       document.getElementById('tab-' + tabName).classList.add('active');
+    }
+
+    function triggerGalleryUpload() {
+      imageFileInput.click();
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const data = instances.find(inst => inst.id === selectedId);
+        if (data) {
+          data.imageSrc = event.target.result;
+          renderInstance(data);
+          updateProperties();
+        }
+      };
+      reader.readAsDataURL(file);
     }
 
     function updateExplorer() {
@@ -476,11 +527,12 @@
     function updateProperties() {
       const data = instances.find(e => e.id === selectedId);
       if (!data) {
-        propertiesForm.innerHTML = `<p style="color: #666; text-align: center; padding: 20px;">Tap an element on the screen to edit its properties.</p>`;
+        propertiesForm.innerHTML = `<p style="color: #666; text-align: center; padding: 20px;">Tap an element on the screen to edit properties.</p>`;
         return;
       }
 
-      propertiesForm.innerHTML = `
+      let html = `
+        <div class="file-upload-btn" onclick="triggerGalleryUpload()">🖼️ Choose Photo from Device</div>
         <div class="prop-row"><label>Name</label><input type="text" value="${data.name}" onchange="setProp('name', this.value)"></div>
         <div class="prop-row"><label>Text</label><input type="text" value="${data.text}" onchange="setProp('text', this.value)"></div>
         <div class="prop-row"><label>Width (px)</label><input type="number" value="${data.width}" onchange="setProp('width', parseInt(this.value))"></div>
@@ -490,6 +542,17 @@
         <div class="prop-row"><label>Background</label><input type="color" value="${data.bgColor}" onchange="setProp('bgColor', this.value)"></div>
         <div class="prop-row"><label>Corner Radius</label><input type="number" value="${data.cornerRadius}" onchange="setProp('cornerRadius', parseInt(this.value))"></div>
       `;
+
+      if (data.type.includes('Button')) {
+        html += `
+          <div style="margin-top: 10px;">
+            <label style="font-size:11px; color:#00a2ff; font-weight:bold;">📜 Script Action (Lua Code)</label>
+            <textarea placeholder="Put Lua code for what happens when clicked..." onchange="setProp('customScript', this.value)">${data.customScript}</textarea>
+          </div>
+        `;
+      }
+
+      propertiesForm.innerHTML = html;
     }
 
     function setProp(prop, val) {
@@ -552,7 +615,8 @@
 
     function exportLua() {
       let code = `-- Roblox Mobile GUI Builder Script\n`;
-      code += `local CoreGui = game:GetService("CoreGui")\n\n`;
+      code += `local CoreGui = game:GetService("CoreGui")\n`;
+      code += `local Players = game:GetService("Players")\n\n`;
       code += `local ScreenGui = Instance.new("ScreenGui")\n`;
       code += `ScreenGui.Name = "MobileStudioGui"\n`;
       code += `ScreenGui.Parent = CoreGui\n\n`;
@@ -567,7 +631,7 @@
         code += `${el.name}.BackgroundColor3 = Color3.fromRGB(${hexToRgb(el.bgColor)})\n`;
         code += `${el.name}.BorderSizePixel = 0\n`;
 
-        if (el.type !== 'Frame') {
+        if (el.type !== 'Frame' && el.type !== 'ImageLabel') {
           code += `${el.name}.Text = "${el.text}"\n`;
           code += `${el.name}.TextColor3 = Color3.fromRGB(255, 255, 255)\n`;
           code += `${el.name}.Font = Enum.Font.GothamBold\n`;
@@ -578,6 +642,12 @@
           code += `local ${el.name}_Corner = Instance.new("UICorner")\n`;
           code += `${el.name}_Corner.CornerRadius = UDim.new(0, ${el.cornerRadius})\n`;
           code += `${el.name}_Corner.Parent = ${el.name}\n`;
+        }
+
+        if (el.customScript && el.type.includes('Button')) {
+          code += `\n${el.name}.MouseButton1Click:Connect(function()\n`;
+          code += `    ${el.customScript.split('\n').join('\n    ')}\n`;
+          code += `end)\n`;
         }
         code += `\n`;
       });
