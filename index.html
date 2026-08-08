@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Roblox Studio Mobile Studio</title>
+  <title>Roblox Studio Web - Pro Builder</title>
   <style>
     :root {
       --bg-dark: #181818;
@@ -89,7 +89,7 @@
       border-color: #00e65c;
     }
 
-    /* MOBILE LANDSCAPE SCREEN RESOLUTION CANVAS */
+    /* MOBILE LANDSCAPE VIEWPORT */
     .viewport-container {
       background: #0d0d0d;
       background-image: radial-gradient(#252525 1px, transparent 0);
@@ -104,17 +104,15 @@
       overflow: hidden;
     }
 
-    /* 16:9 Mobile Roblox Screen Aspect Ratio */
     #screen-gui {
       width: 100%;
-      max-width: 440px;
+      max-width: 420px;
       aspect-ratio: 16 / 9;
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.02);
       border: 2px dashed #555555;
       position: relative;
-      overflow: hidden;
+      overflow: visible;
       border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
     }
 
     /* INSTANCES ON CANVAS */
@@ -129,7 +127,6 @@
       touch-action: none;
       background-size: cover;
       background-position: center;
-      background-repeat: no-repeat;
     }
 
     .studio-instance.selected {
@@ -137,7 +134,27 @@
       outline-offset: -1px;
     }
 
-    /* MOBILE QUICK ACTION BAR */
+    /* HAND RESIZE HANDLE (BOTTOM-RIGHT CORNER) */
+    .resize-handle {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: var(--studio-blue);
+      border: 2px solid #ffffff;
+      border-radius: 4px;
+      bottom: -8px;
+      right: -8px;
+      display: none;
+      touch-action: none;
+      z-index: 99;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+
+    .studio-instance.selected .resize-handle {
+      display: block;
+    }
+
+    /* QUICK ACTION BAR */
     .quick-bar {
       background: #1d1d1d;
       padding: 8px 12px;
@@ -166,7 +183,7 @@
       color: #ffffff;
     }
 
-    /* BOTTOM TAB SYSTEM */
+    /* BOTTOM TABS */
     .bottom-system {
       flex: 1;
       display: flex;
@@ -212,54 +229,49 @@
     }
 
     /* PROPERTIES FORM */
+    .prop-section-title {
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--studio-blue);
+      text-transform: uppercase;
+      margin: 12px 0 6px 0;
+      border-bottom: 1px solid #333;
+      padding-bottom: 2px;
+    }
+
     .prop-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       gap: 10px;
     }
 
     .prop-row label {
       font-size: 12px;
       color: #aaa;
-      width: 40%;
+      width: 45%;
     }
 
-    .prop-row input, .prop-row textarea {
+    .prop-row input, .prop-row select, .prop-row textarea {
       flex: 1;
       background: var(--bg-input);
       border: 1px solid var(--border-color);
       color: #fff;
-      padding: 8px 10px;
+      padding: 6px 8px;
       border-radius: 6px;
       font-size: 13px;
     }
 
     .prop-row textarea {
-      height: 60px;
+      height: 50px;
       font-family: monospace;
       font-size: 11px;
-      resize: vertical;
-    }
-
-    .file-upload-btn {
-      width: 100%;
-      background: #2a3b4c;
-      color: var(--studio-blue);
-      border: 1px dashed var(--studio-blue);
-      padding: 10px;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 12px;
-      cursor: pointer;
-      text-align: center;
-      margin-bottom: 10px;
     }
 
     /* EXPLORER ITEM LIST */
     .tree-item {
-      padding: 12px;
+      padding: 10px;
       background: #1a1a1a;
       border: 1px solid var(--border-color);
       border-radius: 6px;
@@ -275,7 +287,7 @@
       background: #003355;
     }
 
-    /* SCRIPT EXPORT MODAL */
+    /* MODAL */
     .modal {
       display: none;
       position: fixed;
@@ -312,13 +324,10 @@
 </head>
 <body>
 
-  <!-- Hidden File Input for Device Gallery -->
-  <input type="file" id="image-file-input" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
-
   <!-- TOP HEADER -->
   <header>
     <div class="top-bar">
-      <span>Roblox Studio Mobile (16:9 View)</span>
+      <span>Roblox Studio Web v2.1</span>
       <span id="instance-count" style="color: var(--studio-blue)">0 Items</span>
     </div>
     <div class="ribbon">
@@ -331,7 +340,7 @@
     </div>
   </header>
 
-  <!-- MOBILE LANDSCAPE VIEWPORT CANVAS -->
+  <!-- VIEWPORT -->
   <div class="viewport-container">
     <div id="screen-gui"></div>
   </div>
@@ -344,7 +353,7 @@
     <button class="action-btn" onclick="quickAlign('full')">📐 Fill Screen</button>
   </div>
 
-  <!-- BOTTOM TABS (PROPERTIES & EXPLORER) -->
+  <!-- BOTTOM TABS -->
   <div class="bottom-system">
     <div class="tab-headers">
       <button class="tab-btn active" id="btn-properties" onclick="switchTab('properties')">⚙️ Properties</button>
@@ -354,7 +363,7 @@
     <!-- PROPERTIES PANEL -->
     <div class="tab-content active" id="tab-properties">
       <div id="properties-form">
-        <p style="color: #666; text-align: center; padding: 20px;">Tap an element on the screen to edit properties.</p>
+        <p style="color: #666; text-align: center; padding: 20px;">Tap an element on screen to edit properties.</p>
       </div>
     </div>
 
@@ -366,7 +375,7 @@
     </div>
   </div>
 
-  <!-- EXPORT SCRIPT MODAL -->
+  <!-- MODAL -->
   <div class="modal" id="codeModal">
     <textarea id="luaOutput" readonly></textarea>
     <button class="modal-close" onclick="closeModal()">Copy Script & Close</button>
@@ -377,7 +386,6 @@
     const explorerList = document.getElementById('explorer-list');
     const propertiesForm = document.getElementById('properties-form');
     const instanceCount = document.getElementById('instance-count');
-    const imageFileInput = document.getElementById('image-file-input');
 
     let instances = [];
     let selectedId = null;
@@ -391,15 +399,25 @@
         id: id,
         type: type,
         name: type + counter,
+        parentId: 'ScreenGui',
         x: 20,
         y: 20,
-        width: type === 'Frame' ? 140 : 100,
-        height: type === 'Frame' ? 90 : 32,
-        bgColor: type === 'Frame' ? '#252525' : '#333333',
+        width: type === 'Frame' ? 150 : 100,
+        height: type === 'Frame' ? 100 : 32,
+        bgColor: type === 'Frame' ? '#1f1f28' : '#2d2d3a',
+        bgTransparency: 0,
         textColor: '#ffffff',
         text: (type === 'Frame' || type === 'ImageLabel') ? '' : type,
+        textSize: 12,
+        font: 'GothamBold',
+        textAlign: 'Center',
+        hasCorner: true,
         cornerRadius: 6,
-        imageSrc: '',
+        hasBorder: false,
+        borderColor: '#00a2ff',
+        borderThickness: 2,
+        imageId: '',
+        draggable: type === 'Frame',
         customScript: type.includes('Button') ? 'print("Button clicked!")' : ''
       };
 
@@ -415,9 +433,20 @@
         dom = document.createElement('div');
         dom.id = data.id;
         dom.className = 'studio-instance';
-        screenGui.appendChild(dom);
 
-        // Smooth Touch Dragging
+        // Attach to designated parent frame or ScreenGui
+        const parentDom = (data.parentId !== 'ScreenGui' && document.getElementById(data.parentId)) 
+          ? document.getElementById(data.parentId) 
+          : screenGui;
+        
+        parentDom.appendChild(dom);
+
+        // CREATE RESIZE HANDLE
+        const resizeHandle = document.createElement('div');
+        resizeHandle.className = 'resize-handle';
+        dom.appendChild(resizeHandle);
+
+        // --- Touch & Drag Move Handling ---
         let isDragging = false;
         let startX, startY;
 
@@ -427,14 +456,19 @@
           startX = touch.clientX - data.x;
           startY = touch.clientY - data.y;
           selectInstance(data.id);
+          e.stopPropagation();
         };
 
         const doMove = (e) => {
           if (!isDragging) return;
           if (e.touches) e.preventDefault();
           const touch = e.touches ? e.touches[0] : e;
-          data.x = Math.max(0, Math.min(screenGui.clientWidth - data.width, touch.clientX - startX));
-          data.y = Math.max(0, Math.min(screenGui.clientHeight - data.height, touch.clientY - startY));
+          
+          const parentWidth = parentDom.clientWidth || screenGui.clientWidth;
+          const parentHeight = parentDom.clientHeight || screenGui.clientHeight;
+
+          data.x = Math.max(0, Math.min(parentWidth - data.width, touch.clientX - startX));
+          data.y = Math.max(0, Math.min(parentHeight - data.height, touch.clientY - startY));
           updateDom(data);
           updateProperties();
         };
@@ -447,6 +481,50 @@
         dom.addEventListener('mousedown', startMove);
         window.addEventListener('mousemove', doMove);
         window.addEventListener('mouseup', endMove);
+
+        // --- Touch & Drag Resize Handling (Crop Style) ---
+        let isResizing = false;
+        let rStartX, rStartY, startW, startH;
+
+        const startResize = (e) => {
+          isResizing = true;
+          e.stopPropagation();
+          const touch = e.touches ? e.touches[0] : e;
+          rStartX = touch.clientX;
+          rStartY = touch.clientY;
+          startW = data.width;
+          startH = data.height;
+        };
+
+        const doResize = (e) => {
+          if (!isResizing) return;
+          if (e.touches) e.preventDefault();
+          e.stopPropagation();
+          const touch = e.touches ? e.touches[0] : e;
+          
+          const deltaX = touch.clientX - rStartX;
+          const deltaY = touch.clientY - rStartY;
+
+          data.width = Math.max(25, Math.round(startW + deltaX));
+          data.height = Math.max(18, Math.round(startH + deltaY));
+          
+          updateDom(data);
+          updateProperties();
+        };
+
+        const endResize = (e) => {
+          if (isResizing) {
+            isResizing = false;
+            e.stopPropagation();
+          }
+        };
+
+        resizeHandle.addEventListener('touchstart', startResize, {passive: false});
+        resizeHandle.addEventListener('touchmove', doResize, {passive: false});
+        resizeHandle.addEventListener('touchend', endResize);
+        resizeHandle.addEventListener('mousedown', startResize);
+        window.addEventListener('mousemove', doResize);
+        window.addEventListener('mouseup', endResize);
       }
 
       updateDom(data);
@@ -454,17 +532,43 @@
 
     function updateDom(data) {
       const dom = document.getElementById(data.id);
+      
+      // Reparent if parent changed
+      const currentParent = dom.parentElement;
+      const targetParent = (data.parentId !== 'ScreenGui' && document.getElementById(data.parentId)) 
+        ? document.getElementById(data.parentId) 
+        : screenGui;
+      
+      if (currentParent !== targetParent) {
+        targetParent.appendChild(dom);
+      }
+
       dom.style.left = data.x + 'px';
       dom.style.top = data.y + 'px';
       dom.style.width = data.width + 'px';
       dom.style.height = data.height + 'px';
       dom.style.backgroundColor = data.bgColor;
+      dom.style.opacity = 1 - data.bgTransparency;
+      dom.style.borderRadius = data.hasCorner ? data.cornerRadius + 'px' : '0px';
       dom.style.color = data.textColor;
-      dom.style.borderRadius = data.cornerRadius + 'px';
+      dom.style.fontSize = data.textSize + 'px';
+      dom.style.justifyContent = data.textAlign === 'Left' ? 'flex-start' : (data.textAlign === 'Right' ? 'flex-end' : 'center');
+      dom.style.padding = data.textAlign !== 'Center' ? '0 8px' : '0';
+      
+      // Retain inner text without overwriting handle DOM
+      const handleDom = dom.querySelector('.resize-handle');
       dom.innerText = data.text;
+      if (handleDom) dom.appendChild(handleDom);
 
-      if (data.imageSrc) {
-        dom.style.backgroundImage = `url("${data.imageSrc}")`;
+      // Border / UIStroke simulation
+      if (data.hasBorder) {
+        dom.style.border = `${data.borderThickness}px solid ${data.borderColor}`;
+      } else {
+        dom.style.border = 'none';
+      }
+
+      if (data.imageId) {
+        dom.style.backgroundImage = `url("${data.imageId}")`;
       } else {
         dom.style.backgroundImage = 'none';
       }
@@ -488,26 +592,6 @@
       document.getElementById('tab-' + tabName).classList.add('active');
     }
 
-    function triggerGalleryUpload() {
-      imageFileInput.click();
-    }
-
-    function handleImageUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const data = instances.find(inst => inst.id === selectedId);
-        if (data) {
-          data.imageSrc = event.target.result;
-          renderInstance(data);
-          updateProperties();
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-
     function updateExplorer() {
       instanceCount.innerText = `${instances.length} Items`;
       explorerList.innerHTML = `<div class="tree-item" style="color: var(--studio-blue)">📂 ScreenGui</div>`;
@@ -515,7 +599,8 @@
       instances.forEach(inst => {
         const item = document.createElement('div');
         item.className = `tree-item ${inst.id === selectedId ? 'selected' : ''}`;
-        item.innerHTML = `<span>📄 ${inst.name}</span><small style="color:#777">${inst.type}</small>`;
+        const parentName = inst.parentId === 'ScreenGui' ? 'ScreenGui' : (instances.find(i=>i.id===inst.parentId)?.name || 'ScreenGui');
+        item.innerHTML = `<span>📄 ${inst.name} <small style="color:#777">(${parentName})</small></span><small style="color:#00a2ff">${inst.type}</small>`;
         item.onclick = () => {
           selectInstance(inst.id);
           switchTab('properties');
@@ -527,32 +612,65 @@
     function updateProperties() {
       const data = instances.find(e => e.id === selectedId);
       if (!data) {
-        propertiesForm.innerHTML = `<p style="color: #666; text-align: center; padding: 20px;">Tap an element on the screen to edit properties.</p>`;
+        propertiesForm.innerHTML = `<p style="color: #666; text-align: center; padding: 20px;">Tap an element on screen to edit properties.</p>`;
         return;
       }
 
-      let html = `
-        <div class="file-upload-btn" onclick="triggerGalleryUpload()">🖼️ Choose Photo from Device</div>
+      let parentOptions = `<option value="ScreenGui" ${data.parentId==='ScreenGui'?'selected':''}>ScreenGui</option>`;
+      instances.filter(i => i.type === 'Frame' && i.id !== data.id).forEach(f => {
+        parentOptions += `<option value="${f.id}" ${data.parentId===f.id?'selected':''}>${f.name}</option>`;
+      });
+
+      propertiesForm.innerHTML = `
+        <div class="prop-section-title">Hierarchy & Drag</div>
         <div class="prop-row"><label>Name</label><input type="text" value="${data.name}" onchange="setProp('name', this.value)"></div>
-        <div class="prop-row"><label>Text</label><input type="text" value="${data.text}" onchange="setProp('text', this.value)"></div>
+        <div class="prop-row"><label>Parent To</label><select onchange="setProp('parentId', this.value)">${parentOptions}</select></div>
+        ${data.type === 'Frame' ? `<div class="prop-row"><label>Draggable (Mobile)</label><input type="checkbox" ${data.draggable?'checked':''} onchange="setProp('draggable', this.checked)"></div>` : ''}
+
+        <div class="prop-section-title">Appearance & Size</div>
         <div class="prop-row"><label>Width (px)</label><input type="number" value="${data.width}" onchange="setProp('width', parseInt(this.value))"></div>
         <div class="prop-row"><label>Height (px)</label><input type="number" value="${data.height}" onchange="setProp('height', parseInt(this.value))"></div>
         <div class="prop-row"><label>Pos X</label><input type="number" value="${data.x}" onchange="setProp('x', parseInt(this.value))"></div>
         <div class="prop-row"><label>Pos Y</label><input type="number" value="${data.y}" onchange="setProp('y', parseInt(this.value))"></div>
         <div class="prop-row"><label>Background</label><input type="color" value="${data.bgColor}" onchange="setProp('bgColor', this.value)"></div>
+        <div class="prop-row"><label>Transparency (0-1)</label><input type="number" step="0.1" min="0" max="1" value="${data.bgTransparency}" onchange="setProp('bgTransparency', parseFloat(this.value))"></div>
+
+        <div class="prop-section-title">Border (UIStroke)</div>
+        <div class="prop-row"><label>Enable Border</label><input type="checkbox" ${data.hasBorder?'checked':''} onchange="setProp('hasBorder', this.checked)"></div>
+        <div class="prop-row"><label>Border Color</label><input type="color" value="${data.borderColor}" onchange="setProp('borderColor', this.value)"></div>
+        <div class="prop-row"><label>Thickness (px)</label><input type="number" value="${data.borderThickness}" onchange="setProp('borderThickness', parseInt(this.value))"></div>
+
+        <div class="prop-section-title">Corners (UICorner)</div>
+        <div class="prop-row"><label>Rounded Corners</label><input type="checkbox" ${data.hasCorner?'checked':''} onchange="setProp('hasCorner', this.checked)"></div>
         <div class="prop-row"><label>Corner Radius</label><input type="number" value="${data.cornerRadius}" onchange="setProp('cornerRadius', parseInt(this.value))"></div>
-      `;
 
-      if (data.type.includes('Button')) {
-        html += `
-          <div style="margin-top: 10px;">
-            <label style="font-size:11px; color:#00a2ff; font-weight:bold;">📜 Script Action (Lua Code)</label>
-            <textarea placeholder="Put Lua code for what happens when clicked..." onchange="setProp('customScript', this.value)">${data.customScript}</textarea>
+        ${data.type !== 'Frame' ? `
+          <div class="prop-section-title">Text Options</div>
+          <div class="prop-row"><label>Text</label><input type="text" value="${data.text}" onchange="setProp('text', this.value)"></div>
+          <div class="prop-row"><label>Text Color</label><input type="color" value="${data.textColor}" onchange="setProp('textColor', this.value)"></div>
+          <div class="prop-row"><label>Text Size</label><input type="number" value="${data.textSize}" onchange="setProp('textSize', parseInt(this.value))"></div>
+          <div class="prop-row"><label>Font</label>
+            <select onchange="setProp('font', this.value)">
+              <option value="GothamBold" ${data.font==='GothamBold'?'selected':''}>GothamBold</option>
+              <option value="FredokaOne" ${data.font==='FredokaOne'?'selected':''}>FredokaOne</option>
+              <option value="SourceSans" ${data.font==='SourceSans'?'selected':''}>SourceSans</option>
+              <option value="Code" ${data.font==='Code'?'selected':''}>Code</option>
+            </select>
           </div>
-        `;
-      }
+        ` : ''}
 
-      propertiesForm.innerHTML = html;
+        ${data.type === 'ImageLabel' ? `
+          <div class="prop-section-title">Roblox Image Asset</div>
+          <div class="prop-row"><label>Asset ID / URL</label><input type="text" placeholder="rbxassetid://123456" value="${data.imageId}" onchange="setProp('imageId', this.value)"></div>
+        ` : ''}
+
+        ${data.type.includes('Button') ? `
+          <div class="prop-section-title">Scripting</div>
+          <div style="margin-top: 4px;">
+            <textarea placeholder="Type Lua code for MouseButton1Click..." onchange="setProp('customScript', this.value)">${data.customScript}</textarea>
+          </div>
+        ` : ''}
+      `;
     }
 
     function setProp(prop, val) {
@@ -560,7 +678,7 @@
       if (data) {
         data[prop] = val;
         renderInstance(data);
-        if (prop === 'name') updateExplorer();
+        if (prop === 'name' || prop === 'parentId') updateExplorer();
       }
     }
 
@@ -568,14 +686,18 @@
       const data = instances.find(e => e.id === selectedId);
       if (!data) return;
 
+      const parentDom = (data.parentId !== 'ScreenGui' && document.getElementById(data.parentId)) 
+        ? document.getElementById(data.parentId) 
+        : screenGui;
+
       if (type === 'center') {
-        data.x = Math.round((screenGui.clientWidth - data.width) / 2);
-        data.y = Math.round((screenGui.clientHeight - data.height) / 2);
+        data.x = Math.round((parentDom.clientWidth - data.width) / 2);
+        data.y = Math.round((parentDom.clientHeight - data.height) / 2);
       } else if (type === 'full') {
         data.x = 0;
         data.y = 0;
-        data.width = screenGui.clientWidth;
-        data.height = screenGui.clientHeight;
+        data.width = parentDom.clientWidth;
+        data.height = parentDom.clientHeight;
       }
       renderInstance(data);
       updateProperties();
@@ -589,8 +711,8 @@
       const newInst = JSON.parse(JSON.stringify(data));
       newInst.id = 'inst_' + counter;
       newInst.name = data.type + counter;
-      newInst.x = Math.min(screenGui.clientWidth - data.width, data.x + 15);
-      newInst.y = Math.min(screenGui.clientHeight - data.height, data.y + 15);
+      newInst.x = data.x + 10;
+      newInst.y = data.y + 10;
 
       instances.push(newInst);
       renderInstance(newInst);
@@ -614,34 +736,69 @@
     }
 
     function exportLua() {
-      let code = `-- Roblox Mobile GUI Builder Script\n`;
+      let code = `-- Roblox Mobile GUI Builder Script v2.1\n`;
       code += `local CoreGui = game:GetService("CoreGui")\n`;
-      code += `local Players = game:GetService("Players")\n\n`;
+      code += `local UserInputService = game:GetService("UserInputService")\n\n`;
       code += `local ScreenGui = Instance.new("ScreenGui")\n`;
-      code += `ScreenGui.Name = "MobileStudioGui"\n`;
+      code += `ScreenGui.Name = "StudioWebGui"\n`;
       code += `ScreenGui.Parent = CoreGui\n\n`;
 
       instances.forEach(el => {
+        const parentVar = el.parentId === 'ScreenGui' ? 'ScreenGui' : el.parentId;
+        
         code += `-- ${el.name}\n`;
         code += `local ${el.name} = Instance.new("${el.type}")\n`;
         code += `${el.name}.Name = "${el.name}"\n`;
-        code += `${el.name}.Parent = ScreenGui\n`;
+        code += `${el.name}.Parent = ${parentVar}\n`;
         code += `${el.name}.Position = UDim2.new(0, ${el.x}, 0, ${el.y})\n`;
         code += `${el.name}.Size = UDim2.new(0, ${el.width}, 0, ${el.height})\n`;
         code += `${el.name}.BackgroundColor3 = Color3.fromRGB(${hexToRgb(el.bgColor)})\n`;
+        code += `${el.name}.BackgroundTransparency = ${el.bgTransparency}\n`;
         code += `${el.name}.BorderSizePixel = 0\n`;
 
         if (el.type !== 'Frame' && el.type !== 'ImageLabel') {
           code += `${el.name}.Text = "${el.text}"\n`;
-          code += `${el.name}.TextColor3 = Color3.fromRGB(255, 255, 255)\n`;
-          code += `${el.name}.Font = Enum.Font.GothamBold\n`;
-          code += `${el.name}.TextSize = 12\n`;
+          code += `${el.name}.TextColor3 = Color3.fromRGB(${hexToRgb(el.textColor)})\n`;
+          code += `${el.name}.Font = Enum.Font.${el.font}\n`;
+          code += `${el.name}.TextSize = ${el.textSize}\n`;
         }
 
-        if (el.cornerRadius > 0) {
+        if (el.type === 'ImageLabel' && el.imageId) {
+          code += `${el.name}.Image = "${el.imageId}"\n`;
+        }
+
+        if (el.hasCorner && el.cornerRadius > 0) {
           code += `local ${el.name}_Corner = Instance.new("UICorner")\n`;
           code += `${el.name}_Corner.CornerRadius = UDim.new(0, ${el.cornerRadius})\n`;
           code += `${el.name}_Corner.Parent = ${el.name}\n`;
+        }
+
+        if (el.hasBorder) {
+          code += `local ${el.name}_Stroke = Instance.new("UIStroke")\n`;
+          code += `${el.name}_Stroke.Color = Color3.fromRGB(${hexToRgb(el.borderColor)})\n`;
+          code += `${el.name}_Stroke.Thickness = ${el.borderThickness}\n`;
+          code += `${el.name}_Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border\n`;
+          code += `${el.name}_Stroke.Parent = ${el.name}\n`;
+        }
+
+        if (el.draggable && el.type === 'Frame') {
+          code += `\n-- Mobile Touch Drag for ${el.name}\n`;
+          code += `${el.name}.Active = true\n`;
+          code += `local dragging, dragStart, startPos\n`;
+          code += `${el.name}.InputBegan:Connect(function(input)\n`;
+          code += `    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then\n`;
+          code += `        dragging = true; dragStart = input.Position; startPos = ${el.name}.Position\n`;
+          code += `    end\n`;
+          code += `end)\n`;
+          code += `UserInputService.InputChanged:Connect(function(input)\n`;
+          code += `    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then\n`;
+          code += `        local delta = input.Position - dragStart\n`;
+          code += `        ${el.name}.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)\n`;
+          code += `    end\n`;
+          code += `end)\n`;
+          code += `UserInputService.InputEnded:Connect(function(input)\n`;
+          code += `    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end\n`;
+          code += `end)\n`;
         }
 
         if (el.customScript && el.type.includes('Button')) {
