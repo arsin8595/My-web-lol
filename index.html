@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Roblox Studio Web - Pro Builder v3.1</title>
+  <title>Roblox Studio Web - Pro Builder v3.2</title>
   <style>
     :root {
       --bg-dark: #181818;
@@ -89,7 +89,7 @@
       border-color: #00e65c;
     }
 
-    /* MOBILE LANDSCAPE VIEWPORT */
+    /* VIEWPORT */
     .viewport-container {
       background: #0d0d0d;
       background-image: radial-gradient(#252525 1px, transparent 0);
@@ -128,14 +128,15 @@
       background-size: cover;
       background-position: center;
       overflow: visible;
+      cursor: pointer;
     }
 
     .studio-instance.selected {
-      outline: 2px solid var(--studio-blue);
+      outline: 2px solid var(--studio-blue) !important;
       outline-offset: -1px;
     }
 
-    /* TEXT LAYER INSIDE INSTANCE */
+    /* TEXT SPAN LAYER */
     .instance-text {
       pointer-events: none;
       width: 100%;
@@ -146,24 +147,24 @@
       overflow: hidden;
     }
 
-    /* HAND RESIZE HANDLE */
+    /* RESIZE CROP HANDLE */
     .resize-handle {
       position: absolute;
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       background: var(--studio-blue);
       border: 2px solid #ffffff;
       border-radius: 4px;
-      bottom: -9px;
-      right: -9px;
+      bottom: -10px;
+      right: -10px;
       display: none;
       touch-action: none;
-      z-index: 999;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      z-index: 9999;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
     }
 
     .studio-instance.selected > .resize-handle {
-      display: block;
+      display: block !important;
     }
 
     /* QUICK ACTION BAR */
@@ -311,13 +312,13 @@
       background: #003355;
     }
 
-    /* DEDICATED FULL-SCREEN SCRIPT EDITOR MODAL */
+    /* DEDICATED SCRIPT EDITOR OVERLAY */
     .script-modal {
       display: none;
       position: fixed;
       inset: 0;
       background: #111116;
-      z-index: 200;
+      z-index: 20000;
       flex-direction: column;
     }
 
@@ -376,7 +377,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.85);
-      z-index: 100;
+      z-index: 10000;
       padding: 16px;
       flex-direction: column;
     }
@@ -410,7 +411,7 @@
   <!-- TOP HEADER -->
   <header>
     <div class="top-bar">
-      <span>Roblox Studio Web v3.1</span>
+      <span>Roblox Studio Web v3.2</span>
       <span id="instance-count" style="color: var(--studio-blue)">0 Items</span>
     </div>
     <div class="ribbon">
@@ -424,7 +425,7 @@
   </header>
 
   <!-- VIEWPORT -->
-  <div class="viewport-container">
+  <div class="viewport-container" id="canvas-bg">
     <div id="screen-gui"></div>
   </div>
 
@@ -482,10 +483,26 @@
     const propertiesForm = document.getElementById('properties-form');
     const instanceCount = document.getElementById('instance-count');
     const quickScriptBtn = document.getElementById('quick-script-btn');
+    const canvasBg = document.getElementById('canvas-bg');
 
     let instances = [];
     let selectedId = null;
     let counter = 0;
+
+    // Deselect only when tapping background canvas directly
+    canvasBg.addEventListener('pointerdown', (e) => {
+      if (e.target === canvasBg || e.target === screenGui) {
+        deselectAll();
+      }
+    });
+
+    function deselectAll() {
+      selectedId = null;
+      document.querySelectorAll('.studio-instance').forEach(el => el.classList.remove('selected'));
+      quickScriptBtn.style.display = 'none';
+      updateExplorer();
+      updateProperties();
+    }
 
     function addInstance(type) {
       counter++;
@@ -536,38 +553,37 @@
         dom.id = data.id;
         dom.className = 'studio-instance';
 
-        // Isolated Text Span Layer
+        // Isolated Text Layer
         const textSpan = document.createElement('span');
         textSpan.className = 'instance-text';
         dom.appendChild(textSpan);
 
-        // Resize Handle
+        // Crop Resize Handle
         const resizeHandle = document.createElement('div');
         resizeHandle.className = 'resize-handle';
         dom.appendChild(resizeHandle);
 
-        // Touch & Move Handling
+        // Movement Pointer Handlers
         let isDragging = false;
         let startX, startY, initialX, initialY;
 
         const startMove = (e) => {
+          e.stopPropagation();
+          selectInstance(data.id);
+
           isDragging = true;
-          const touch = e.touches ? e.touches[0] : e;
-          startX = touch.clientX;
-          startY = touch.clientY;
+          startX = e.clientX;
+          startY = e.clientY;
           initialX = data.x;
           initialY = data.y;
-          selectInstance(data.id);
-          e.stopPropagation();
         };
 
         const doMove = (e) => {
           if (!isDragging) return;
-          if (e.touches) e.preventDefault();
-          const touch = e.touches ? e.touches[0] : e;
+          e.stopPropagation();
 
-          const deltaX = touch.clientX - startX;
-          const deltaY = touch.clientY - startY;
+          const deltaX = e.clientX - startX;
+          const deltaY = e.clientY - startY;
 
           data.x = Math.max(0, Math.round(initialX + deltaX));
           data.y = Math.max(0, Math.round(initialY + deltaY));
@@ -576,37 +592,36 @@
           updateProperties();
         };
 
-        const endMove = () => { isDragging = false; };
+        const endMove = (e) => { 
+          if (isDragging) {
+            isDragging = false; 
+            e.stopPropagation();
+          }
+        };
 
-        dom.addEventListener('touchstart', startMove, {passive: false});
-        dom.addEventListener('touchmove', doMove, {passive: false});
-        dom.addEventListener('touchend', endMove);
-        dom.addEventListener('mousedown', startMove);
-        window.addEventListener('mousemove', doMove);
-        window.addEventListener('mouseup', endMove);
+        dom.addEventListener('pointerdown', startMove);
+        window.addEventListener('pointermove', doMove);
+        window.addEventListener('pointerup', endMove);
 
-        // Touch & Resize Handling
+        // Resize Pointer Handlers
         let isResizing = false;
         let rStartX, rStartY, startW, startH;
 
         const startResize = (e) => {
-          isResizing = true;
           e.stopPropagation();
-          const touch = e.touches ? e.touches[0] : e;
-          rStartX = touch.clientX;
-          rStartY = touch.clientY;
+          isResizing = true;
+          rStartX = e.clientX;
+          rStartY = e.clientY;
           startW = data.width;
           startH = data.height;
         };
 
         const doResize = (e) => {
           if (!isResizing) return;
-          if (e.touches) e.preventDefault();
           e.stopPropagation();
-          const touch = e.touches ? e.touches[0] : e;
           
-          const deltaX = touch.clientX - rStartX;
-          const deltaY = touch.clientY - rStartY;
+          const deltaX = e.clientX - rStartX;
+          const deltaY = e.clientY - rStartY;
 
           data.width = Math.max(20, Math.round(startW + deltaX));
           data.height = Math.max(15, Math.round(startH + deltaY));
@@ -622,12 +637,9 @@
           }
         };
 
-        resizeHandle.addEventListener('touchstart', startResize, {passive: false});
-        resizeHandle.addEventListener('touchmove', doResize, {passive: false});
-        resizeHandle.addEventListener('touchend', endResize);
-        resizeHandle.addEventListener('mousedown', startResize);
-        window.addEventListener('mousemove', doResize);
-        window.addEventListener('mouseup', endResize);
+        resizeHandle.addEventListener('pointerdown', startResize);
+        window.addEventListener('pointermove', doResize);
+        window.addEventListener('pointerup', endResize);
       }
 
       updateDom(data);
@@ -730,7 +742,8 @@
         item.className = `tree-item ${inst.id === selectedId ? 'selected' : ''}`;
         const parentName = inst.parentId === 'ScreenGui' ? 'ScreenGui' : (instances.find(i=>i.id===inst.parentId)?.name || 'ScreenGui');
         item.innerHTML = `<span>📄 ${inst.name} <small style="color:#777">(${parentName})</small></span><small style="color:#00a2ff">${inst.type}</small>`;
-        item.onclick = () => {
+        item.onclick = (e) => {
+          e.stopPropagation();
           selectInstance(inst.id);
           switchTab('properties');
         };
@@ -868,7 +881,7 @@
     }
 
     function exportLua() {
-      let code = `-- Roblox Mobile GUI Builder Script v3.1\n`;
+      let code = `-- Roblox Mobile GUI Builder Script v3.2\n`;
       code += `local CoreGui = game:GetService("CoreGui")\n`;
       code += `local UserInputService = game:GetService("UserInputService")\n\n`;
       code += `local ScreenGui = Instance.new("ScreenGui")\n`;
