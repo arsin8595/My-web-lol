@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Roblox Studio Web - Pro Builder</title>
+  <title>Roblox Studio Web - Pro Builder v3</title>
   <style>
     :root {
       --bg-dark: #181818;
@@ -127,6 +127,7 @@
       touch-action: none;
       background-size: cover;
       background-position: center;
+      overflow: visible;
     }
 
     .studio-instance.selected {
@@ -134,19 +135,19 @@
       outline-offset: -1px;
     }
 
-    /* HAND RESIZE HANDLE (BOTTOM-RIGHT CORNER) */
+    /* HAND RESIZE HANDLE */
     .resize-handle {
       position: absolute;
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       background: var(--studio-blue);
       border: 2px solid #ffffff;
       border-radius: 4px;
-      bottom: -8px;
-      right: -8px;
+      bottom: -9px;
+      right: -9px;
       display: none;
       touch-action: none;
-      z-index: 99;
+      z-index: 999;
       box-shadow: 0 2px 6px rgba(0,0,0,0.5);
     }
 
@@ -181,6 +182,11 @@
       background: #8b0000;
       border-color: var(--studio-red);
       color: #ffffff;
+    }
+
+    .action-btn.script-btn {
+      background: #005599;
+      border-color: var(--studio-blue);
     }
 
     /* BOTTOM TABS */
@@ -253,7 +259,7 @@
       width: 45%;
     }
 
-    .prop-row input, .prop-row select, .prop-row textarea {
+    .prop-row input, .prop-row select {
       flex: 1;
       background: var(--bg-input);
       border: 1px solid var(--border-color);
@@ -263,10 +269,17 @@
       font-size: 13px;
     }
 
-    .prop-row textarea {
-      height: 50px;
-      font-family: monospace;
-      font-size: 11px;
+    .script-open-trigger {
+      width: 100%;
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 13px;
+      margin: 10px 0;
+      cursor: pointer;
     }
 
     /* EXPLORER ITEM LIST */
@@ -287,7 +300,66 @@
       background: #003355;
     }
 
-    /* MODAL */
+    /* DEDICATED FULL-SCREEN SCRIPT EDITOR MODAL */
+    .script-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #111116;
+      z-index: 200;
+      flex-direction: column;
+    }
+
+    .script-modal-header {
+      background: #1c1c24;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .script-modal-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--studio-blue);
+    }
+
+    .save-script-btn {
+      background: var(--studio-green);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .script-modal-body {
+      flex: 1;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .script-textarea {
+      flex: 1;
+      width: 100%;
+      background: #0a0a0d;
+      color: #00ffcc;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 1.4;
+      white-space: pre;
+      resize: none;
+      outline: none;
+    }
+
+    /* EXPORT LUA MODAL */
     .modal {
       display: none;
       position: fixed;
@@ -327,7 +399,7 @@
   <!-- TOP HEADER -->
   <header>
     <div class="top-bar">
-      <span>Roblox Studio Web v2.1</span>
+      <span>Roblox Studio Web v3.0</span>
       <span id="instance-count" style="color: var(--studio-blue)">0 Items</span>
     </div>
     <div class="ribbon">
@@ -348,6 +420,7 @@
   <!-- QUICK ACTION TOOLBAR -->
   <div class="quick-bar">
     <button class="action-btn delete" onclick="deleteSelected()">🗑️ Delete</button>
+    <button class="action-btn script-btn" id="quick-script-btn" onclick="openScriptTab()" style="display:none;">📜 Edit Script</button>
     <button class="action-btn" onclick="quickAlign('center')">🎯 Center</button>
     <button class="action-btn" onclick="duplicateSelected()">📋 Duplicate</button>
     <button class="action-btn" onclick="quickAlign('full')">📐 Fill Screen</button>
@@ -375,7 +448,18 @@
     </div>
   </div>
 
-  <!-- MODAL -->
+  <!-- DEDICATED SCRIPT EDITOR TAB / OVERLAY -->
+  <div class="script-modal" id="scriptTab">
+    <div class="script-modal-header">
+      <span class="script-modal-title" id="scriptEditorTitle">📜 Scripting: Unset</span>
+      <button class="save-script-btn" onclick="saveScript()">💾 SAVE</button>
+    </div>
+    <div class="script-modal-body">
+      <textarea id="scriptEditorInput" class="script-textarea" placeholder="-- Type Lua code for MouseButton1Click here..."></textarea>
+    </div>
+  </div>
+
+  <!-- EXPORT SCRIPT MODAL -->
   <div class="modal" id="codeModal">
     <textarea id="luaOutput" readonly></textarea>
     <button class="modal-close" onclick="closeModal()">Copy Script & Close</button>
@@ -386,6 +470,7 @@
     const explorerList = document.getElementById('explorer-list');
     const propertiesForm = document.getElementById('properties-form');
     const instanceCount = document.getElementById('instance-count');
+    const quickScriptBtn = document.getElementById('quick-script-btn');
 
     let instances = [];
     let selectedId = null;
@@ -405,12 +490,18 @@
         width: type === 'Frame' ? 150 : 100,
         height: type === 'Frame' ? 100 : 32,
         bgColor: type === 'Frame' ? '#1f1f28' : '#2d2d3a',
+        hoverColor: '#3b3b4d',
         bgTransparency: 0,
         textColor: '#ffffff',
         text: (type === 'Frame' || type === 'ImageLabel') ? '' : type,
         textSize: 12,
+        textScaled: false,
+        textWrapped: true,
         font: 'GothamBold',
         textAlign: 'Center',
+        rotation: 0,
+        zIndex: 1,
+        visible: true,
         hasCorner: true,
         cornerRadius: 6,
         hasBorder: false,
@@ -418,7 +509,7 @@
         borderThickness: 2,
         imageId: '',
         draggable: type === 'Frame',
-        customScript: type.includes('Button') ? 'print("Button clicked!")' : ''
+        customScript: type.includes('Button') ? 'print("Clicked!")' : ''
       };
 
       instances.push(newInst);
@@ -434,27 +525,21 @@
         dom.id = data.id;
         dom.className = 'studio-instance';
 
-        // Attach to designated parent frame or ScreenGui
-        const parentDom = (data.parentId !== 'ScreenGui' && document.getElementById(data.parentId)) 
-          ? document.getElementById(data.parentId) 
-          : screenGui;
-        
-        parentDom.appendChild(dom);
-
-        // CREATE RESIZE HANDLE
         const resizeHandle = document.createElement('div');
         resizeHandle.className = 'resize-handle';
         dom.appendChild(resizeHandle);
 
-        // --- Touch & Drag Move Handling ---
+        // Touch & Move Handling (Fixed Nested Parenting Offset Bug)
         let isDragging = false;
-        let startX, startY;
+        let startX, startY, initialX, initialY;
 
         const startMove = (e) => {
           isDragging = true;
           const touch = e.touches ? e.touches[0] : e;
-          startX = touch.clientX - data.x;
-          startY = touch.clientY - data.y;
+          startX = touch.clientX;
+          startY = touch.clientY;
+          initialX = data.x;
+          initialY = data.y;
           selectInstance(data.id);
           e.stopPropagation();
         };
@@ -463,12 +548,13 @@
           if (!isDragging) return;
           if (e.touches) e.preventDefault();
           const touch = e.touches ? e.touches[0] : e;
-          
-          const parentWidth = parentDom.clientWidth || screenGui.clientWidth;
-          const parentHeight = parentDom.clientHeight || screenGui.clientHeight;
 
-          data.x = Math.max(0, Math.min(parentWidth - data.width, touch.clientX - startX));
-          data.y = Math.max(0, Math.min(parentHeight - data.height, touch.clientY - startY));
+          const deltaX = touch.clientX - startX;
+          const deltaY = touch.clientY - startY;
+
+          data.x = Math.max(0, Math.round(initialX + deltaX));
+          data.y = Math.max(0, Math.round(initialY + deltaY));
+          
           updateDom(data);
           updateProperties();
         };
@@ -482,7 +568,7 @@
         window.addEventListener('mousemove', doMove);
         window.addEventListener('mouseup', endMove);
 
-        // --- Touch & Drag Resize Handling (Crop Style) ---
+        // Touch & Resize Handling
         let isResizing = false;
         let rStartX, rStartY, startW, startH;
 
@@ -505,8 +591,8 @@
           const deltaX = touch.clientX - rStartX;
           const deltaY = touch.clientY - rStartY;
 
-          data.width = Math.max(25, Math.round(startW + deltaX));
-          data.height = Math.max(18, Math.round(startH + deltaY));
+          data.width = Math.max(20, Math.round(startW + deltaX));
+          data.height = Math.max(15, Math.round(startH + deltaY));
           
           updateDom(data);
           updateProperties();
@@ -533,13 +619,11 @@
     function updateDom(data) {
       const dom = document.getElementById(data.id);
       
-      // Reparent if parent changed
-      const currentParent = dom.parentElement;
       const targetParent = (data.parentId !== 'ScreenGui' && document.getElementById(data.parentId)) 
         ? document.getElementById(data.parentId) 
         : screenGui;
       
-      if (currentParent !== targetParent) {
+      if (dom.parentElement !== targetParent) {
         targetParent.appendChild(dom);
       }
 
@@ -548,19 +632,20 @@
       dom.style.width = data.width + 'px';
       dom.style.height = data.height + 'px';
       dom.style.backgroundColor = data.bgColor;
-      dom.style.opacity = 1 - data.bgTransparency;
+      dom.style.opacity = data.visible ? (1 - data.bgTransparency) : 0;
       dom.style.borderRadius = data.hasCorner ? data.cornerRadius + 'px' : '0px';
       dom.style.color = data.textColor;
-      dom.style.fontSize = data.textSize + 'px';
+      dom.style.fontSize = data.textScaled ? '16px' : data.textSize + 'px';
+      dom.style.transform = `rotate(${data.rotation}deg)`;
+      dom.style.zIndex = data.zIndex;
+      dom.style.whiteSpace = data.textWrapped ? 'normal' : 'nowrap';
       dom.style.justifyContent = data.textAlign === 'Left' ? 'flex-start' : (data.textAlign === 'Right' ? 'flex-end' : 'center');
       dom.style.padding = data.textAlign !== 'Center' ? '0 8px' : '0';
       
-      // Retain inner text without overwriting handle DOM
       const handleDom = dom.querySelector('.resize-handle');
       dom.innerText = data.text;
       if (handleDom) dom.appendChild(handleDom);
 
-      // Border / UIStroke simulation
       if (data.hasBorder) {
         dom.style.border = `${data.borderThickness}px solid ${data.borderColor}`;
       } else {
@@ -579,6 +664,13 @@
       document.querySelectorAll('.studio-instance').forEach(el => el.classList.remove('selected'));
       const activeDom = document.getElementById(id);
       if (activeDom) activeDom.classList.add('selected');
+
+      const data = instances.find(e => e.id === id);
+      if (data && data.type.includes('Button')) {
+        quickScriptBtn.style.display = 'block';
+      } else {
+        quickScriptBtn.style.display = 'none';
+      }
       
       updateExplorer();
       updateProperties();
@@ -590,6 +682,25 @@
 
       document.getElementById('btn-' + tabName).classList.add('active');
       document.getElementById('tab-' + tabName).classList.add('active');
+    }
+
+    /* FULL-SCREEN DEDICATED SCRIPT TAB FUNCTIONS */
+    function openScriptTab() {
+      const data = instances.find(e => e.id === selectedId);
+      if (!data) return;
+
+      document.getElementById('scriptEditorTitle').innerText = `📜 Scripting: ${data.name}`;
+      document.getElementById('scriptEditorInput').value = data.customScript || '';
+      document.getElementById('scriptTab').style.display = 'flex';
+    }
+
+    function saveScript() {
+      const data = instances.find(e => e.id === selectedId);
+      if (data) {
+        data.customScript = document.getElementById('scriptEditorInput').value;
+        alert(`Script saved to ${data.name}!`);
+      }
+      document.getElementById('scriptTab').style.display = 'none';
     }
 
     function updateExplorer() {
@@ -622,17 +733,25 @@
       });
 
       propertiesForm.innerHTML = `
-        <div class="prop-section-title">Hierarchy & Drag</div>
+        ${data.type.includes('Button') ? `<button class="script-open-trigger" onclick="openScriptTab()">📜 OPEN SCRIPT EDITOR</button>` : ''}
+
+        <div class="prop-section-title">Hierarchy & Physics</div>
         <div class="prop-row"><label>Name</label><input type="text" value="${data.name}" onchange="setProp('name', this.value)"></div>
         <div class="prop-row"><label>Parent To</label><select onchange="setProp('parentId', this.value)">${parentOptions}</select></div>
+        <div class="prop-row"><label>Visible</label><input type="checkbox" ${data.visible?'checked':''} onchange="setProp('visible', this.checked)"></div>
+        <div class="prop-row"><label>ZIndex (Layer)</label><input type="number" value="${data.zIndex}" onchange="setProp('zIndex', parseInt(this.value))"></div>
         ${data.type === 'Frame' ? `<div class="prop-row"><label>Draggable (Mobile)</label><input type="checkbox" ${data.draggable?'checked':''} onchange="setProp('draggable', this.checked)"></div>` : ''}
 
-        <div class="prop-section-title">Appearance & Size</div>
+        <div class="prop-section-title">Transform & Size</div>
         <div class="prop-row"><label>Width (px)</label><input type="number" value="${data.width}" onchange="setProp('width', parseInt(this.value))"></div>
         <div class="prop-row"><label>Height (px)</label><input type="number" value="${data.height}" onchange="setProp('height', parseInt(this.value))"></div>
         <div class="prop-row"><label>Pos X</label><input type="number" value="${data.x}" onchange="setProp('x', parseInt(this.value))"></div>
         <div class="prop-row"><label>Pos Y</label><input type="number" value="${data.y}" onchange="setProp('y', parseInt(this.value))"></div>
+        <div class="prop-row"><label>Rotation (deg)</label><input type="number" value="${data.rotation}" onchange="setProp('rotation', parseInt(this.value))"></div>
+
+        <div class="prop-section-title">Colors & Transparency</div>
         <div class="prop-row"><label>Background</label><input type="color" value="${data.bgColor}" onchange="setProp('bgColor', this.value)"></div>
+        ${data.type.includes('Button') ? `<div class="prop-row"><label>Hover Color</label><input type="color" value="${data.hoverColor}" onchange="setProp('hoverColor', this.value)"></div>` : ''}
         <div class="prop-row"><label>Transparency (0-1)</label><input type="number" step="0.1" min="0" max="1" value="${data.bgTransparency}" onchange="setProp('bgTransparency', parseFloat(this.value))"></div>
 
         <div class="prop-section-title">Border (UIStroke)</div>
@@ -645,10 +764,12 @@
         <div class="prop-row"><label>Corner Radius</label><input type="number" value="${data.cornerRadius}" onchange="setProp('cornerRadius', parseInt(this.value))"></div>
 
         ${data.type !== 'Frame' ? `
-          <div class="prop-section-title">Text Options</div>
+          <div class="prop-section-title">Text Formatting</div>
           <div class="prop-row"><label>Text</label><input type="text" value="${data.text}" onchange="setProp('text', this.value)"></div>
           <div class="prop-row"><label>Text Color</label><input type="color" value="${data.textColor}" onchange="setProp('textColor', this.value)"></div>
           <div class="prop-row"><label>Text Size</label><input type="number" value="${data.textSize}" onchange="setProp('textSize', parseInt(this.value))"></div>
+          <div class="prop-row"><label>TextScaled</label><input type="checkbox" ${data.textScaled?'checked':''} onchange="setProp('textScaled', this.checked)"></div>
+          <div class="prop-row"><label>TextWrapped</label><input type="checkbox" ${data.textWrapped?'checked':''} onchange="setProp('textWrapped', this.checked)"></div>
           <div class="prop-row"><label>Font</label>
             <select onchange="setProp('font', this.value)">
               <option value="GothamBold" ${data.font==='GothamBold'?'selected':''}>GothamBold</option>
@@ -662,13 +783,6 @@
         ${data.type === 'ImageLabel' ? `
           <div class="prop-section-title">Roblox Image Asset</div>
           <div class="prop-row"><label>Asset ID / URL</label><input type="text" placeholder="rbxassetid://123456" value="${data.imageId}" onchange="setProp('imageId', this.value)"></div>
-        ` : ''}
-
-        ${data.type.includes('Button') ? `
-          <div class="prop-section-title">Scripting</div>
-          <div style="margin-top: 4px;">
-            <textarea placeholder="Type Lua code for MouseButton1Click..." onchange="setProp('customScript', this.value)">${data.customScript}</textarea>
-          </div>
         ` : ''}
       `;
     }
@@ -736,7 +850,7 @@
     }
 
     function exportLua() {
-      let code = `-- Roblox Mobile GUI Builder Script v2.1\n`;
+      let code = `-- Roblox Mobile GUI Builder Script v3.0\n`;
       code += `local CoreGui = game:GetService("CoreGui")\n`;
       code += `local UserInputService = game:GetService("UserInputService")\n\n`;
       code += `local ScreenGui = Instance.new("ScreenGui")\n`;
@@ -754,6 +868,9 @@
         code += `${el.name}.Size = UDim2.new(0, ${el.width}, 0, ${el.height})\n`;
         code += `${el.name}.BackgroundColor3 = Color3.fromRGB(${hexToRgb(el.bgColor)})\n`;
         code += `${el.name}.BackgroundTransparency = ${el.bgTransparency}\n`;
+        code += `${el.name}.Rotation = ${el.rotation}\n`;
+        code += `${el.name}.ZIndex = ${el.zIndex}\n`;
+        code += `${el.name}.Visible = ${el.visible}\n`;
         code += `${el.name}.BorderSizePixel = 0\n`;
 
         if (el.type !== 'Frame' && el.type !== 'ImageLabel') {
@@ -761,6 +878,8 @@
           code += `${el.name}.TextColor3 = Color3.fromRGB(${hexToRgb(el.textColor)})\n`;
           code += `${el.name}.Font = Enum.Font.${el.font}\n`;
           code += `${el.name}.TextSize = ${el.textSize}\n`;
+          code += `${el.name}.TextScaled = ${el.textScaled}\n`;
+          code += `${el.name}.TextWrapped = ${el.textWrapped}\n`;
         }
 
         if (el.type === 'ImageLabel' && el.imageId) {
@@ -779,6 +898,16 @@
           code += `${el.name}_Stroke.Thickness = ${el.borderThickness}\n`;
           code += `${el.name}_Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border\n`;
           code += `${el.name}_Stroke.Parent = ${el.name}\n`;
+        }
+
+        if (el.type.includes('Button')) {
+          code += `\n-- Hover Effect for ${el.name}\n`;
+          code += `${el.name}.MouseEnter:Connect(function()\n`;
+          code += `    ${el.name}.BackgroundColor3 = Color3.fromRGB(${hexToRgb(el.hoverColor)})\n`;
+          code += `end)\n`;
+          code += `${el.name}.MouseLeave:Connect(function()\n`;
+          code += `    ${el.name}.BackgroundColor3 = Color3.fromRGB(${hexToRgb(el.bgColor)})\n`;
+          code += `end)\n`;
         }
 
         if (el.draggable && el.type === 'Frame') {
